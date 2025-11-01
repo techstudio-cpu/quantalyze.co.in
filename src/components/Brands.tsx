@@ -7,7 +7,6 @@ const brands = Array.from({ length: 26 }, (_, i) => ({
   alt: `Brand partner ${i + 1} logo - Quantalyze client`,
 }));
 
-const ROW_SIZE = Math.ceil(brands.length / 2);
 const REPEAT = 4;
 const topRow = Array(REPEAT).fill(brands.slice(0, Math.ceil(brands.length / 2))).flat();
 const bottomRow = Array(REPEAT).fill(brands.slice(Math.ceil(brands.length / 2))).flat();
@@ -38,6 +37,7 @@ export default function Brands() {
                   key={idx}
                   className="flex items-center justify-center rounded-2xl shadow-xl bg-yellow-100/80 transition-all duration-300 h-48 w-64 mx-2 group"
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={brand.image}
                     alt={brand.alt}
@@ -56,6 +56,7 @@ export default function Brands() {
                   key={idx}
                   className="flex items-center justify-center rounded-2xl shadow-xl bg-yellow-100/80 transition-all duration-300 h-48 w-64 mx-2 group"
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={brand.image}
                     alt={brand.alt}

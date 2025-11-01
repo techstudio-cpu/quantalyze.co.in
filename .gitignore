@@ -38,3 +38,12 @@ next-env.d.ts
 
 # Cursor
 .cursor
+
+# Deployment folder
+/out
+/export
+
+# Backup files
+*.log
+*.bak
+*~

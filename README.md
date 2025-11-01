@@ -6,10 +6,10 @@ A modern, responsive, and feature-rich website for Quantalyze Digital Marketing 
 
 ### Design & UI
 - **Modern & Responsive Design**: Fully responsive layout that looks great on all devices
-- **Dark Mode Support**: Toggle between light and dark themes
+- **Yellow & White Theme**: Clean, professional yellow and white color scheme
 - **Smooth Animations**: Engaging animations and transitions throughout
-- **Gradient Accents**: Beautiful gradient colors for a premium feel
-- **Custom Scrollbar**: Styled scrollbar matching the brand theme
+- **Premium Branding**: Professional branding with Inter font and glowing effects
+- **Hero Background**: Stunning hero section with custom background image
 
 ### Sections
 1. **Hero Section**: Eye-catching hero with CTA buttons, animated background, and key statistics
@@ -157,20 +157,27 @@ The portfolio section uses Unsplash images. Replace them with your own images by
 
 ## 🚀 Deployment
 
-### Vercel (Recommended)
+### ServerByte / Traditional Hosting (Production Ready)
+
+1. Build the static export:
+```bash
+npm run build
+```
+
+2. Upload the `out/` folder contents to your ServerByte server:
+   - Use FTP (FileZilla) or cPanel File Manager
+   - Upload to `public_html` directory
+   - Ensure `.htaccess` is included for proper routing
+
+3. Your site is now live!
+
+📖 **See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions**
+
+### Vercel (Alternative)
 
 1. Push your code to GitHub
 2. Import the repository on [Vercel](https://vercel.com)
 3. Deploy with one click
-
-### Other Platforms
-
-Build the production version:
-
-```bash
-npm run build
-npm start
-```
 
 ## 📄 Scripts
 

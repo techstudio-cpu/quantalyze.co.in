@@ -12,10 +12,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
         <link rel="icon" href="/images/quantalyze.ico" type="image/x-icon" />
       </head>
-      <body className="bg-yellow-50 text-gray-900 min-h-screen font-sans">
+      <body className="bg-yellow-50 text-gray-900 min-h-screen font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
         <Navbar />
         <main>{children}</main>
         <Footer />
