@@ -5,11 +5,9 @@ import { Link as ScrollLink } from "react-scroll";
 
 export default function Hero() {
   return (
-    <section id="hero" className="relative min-h-[90vh] flex items-center justify-end overflow-hidden bg-cover bg-center" style={{ backgroundImage: "url('/images/Hero.png')" }}>
-      {/* Enhanced overlay for better hero image visibility */}
-      <div className="absolute inset-0 bg-black/30 pointer-events-none"></div>
+    <section id="hero" className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-white">
 
-      <div className="relative z-10 max-w-4xl w-full mr-0 ml-auto px-4 sm:px-6 lg:px-8 py-20 flex flex-col items-end text-right">
+      <div className="relative z-10 max-w-4xl w-full px-4 sm:px-6 lg:px-8 py-20 flex flex-col items-center text-center">
         {/* Badge */}
         <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg mb-8 animate-fade-in border border-yellow-200">
           <FaRocket className="text-yellow-600" />
@@ -28,7 +26,7 @@ export default function Hero() {
           We deliver cutting-edge SEO, SMM, Analytics, and Branding solutions.
         </p>
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-end justify-end gap-4 mb-12">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
           <ScrollLink
             to="contact"
             spy={true}
