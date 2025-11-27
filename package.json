@@ -9,13 +9,13 @@
     "lint": "next lint",
     "build:production": "NODE_ENV=production next build",
     "start:production": "NODE_ENV=production next start",
-    "export": "next build && next export",
+    "export": "next build",
     "postbuild": "next-sitemap",
     "type-check": "tsc --noEmit",
     "analyze": "ANALYZE=true next build",
     "railway:build": "npm install && npm run build",
     "railway:start": "npm start",
-    "deploy:railway": "npm run build && git add . && git commit -m 'Deploy to Railway' && git push"
+    "deploy:netlify": "npm run build && git add . && git commit -m 'Deploy to Netlify' && git push"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
