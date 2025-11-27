@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Static export for Netlify
-  output: 'export',
-  trailingSlash: true,
-  distDir: 'out',
+  // Railway deployment configuration
+  output: undefined,
   
   // Production optimizations
   eslint: {
@@ -14,9 +12,8 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   
-  // Image optimization for static export
+  // Image optimization for production
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -31,6 +28,8 @@ const nextConfig = {
         hostname: 'railway.app',
       },
     ],
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
   },
   
   // Security headers
@@ -56,13 +55,14 @@ const nextConfig = {
     ];
   },
   
-  // Compression (disabled for static export)
-  compress: false,
+  // Compression
+  compress: true,
   
   // Power by header
   poweredByHeader: false,
   
-  // Trailing slash already set above
+  // Trailing slash for better compatibility
+  trailingSlash: true,
   
   // Environment-specific settings
   ...(process.env.NODE_ENV === 'production' && {
