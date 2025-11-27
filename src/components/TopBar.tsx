@@ -1,6 +1,7 @@
 "use client";
 
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
+import { contactEmail } from '@/config/email';
 
 export default function TopBar() {
   return (
@@ -13,8 +14,8 @@ export default function TopBar() {
           <a href="tel:+916357410889" className="hidden lg:inline-flex items-center gap-2 hover:text-yellow-700 transition-colors">
             <FaPhoneAlt className="text-yellow-600" /> +91 6357410889
           </a>
-          <a href="mailto:info@quantalyze.co.in" className="hidden md:inline-flex items-center gap-2 hover:text-yellow-700 transition-colors">
-            <FaEnvelope className="text-yellow-600" /> info@quantalyze.co.in
+          <a href={`mailto:${contactEmail}`} className="hidden md:inline-flex items-center gap-2 hover:text-yellow-700 transition-colors">
+            <FaEnvelope className="text-yellow-600" /> {contactEmail}
           </a>
         </div>
         <div className="flex items-center gap-3 text-gray-800">

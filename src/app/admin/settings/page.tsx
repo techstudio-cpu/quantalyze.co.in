@@ -1,5 +1,7 @@
 'use client';
 
+import { contactEmail } from '@/config/email';
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
@@ -29,7 +31,7 @@ export default function Settings() {
   const [settings, setSettings] = useState<SiteSettings>({
     siteName: 'Quantalyze',
     siteUrl: 'https://quantalyze.co.in',
-    contactEmail: 'info@quantalyze.co.in',
+    contactEmail: contactEmail,
     contactPhone: '+91 8770338369',
     socialMedia: {
       instagram: 'https://www.instagram.com/quantalyze/',

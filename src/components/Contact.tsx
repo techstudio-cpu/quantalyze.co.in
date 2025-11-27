@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaPaperPlane, FaCheckCircle } from "react-icons/fa";
+import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaPaperPlane } from "react-icons/fa";
+import { contactEmail } from '@/config/email';
 
 type FormData = {
   name: string;
@@ -223,8 +223,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <div className="font-semibold text-gray-900 mb-1">Email</div>
-                    <a href="mailto:info@quantalyze.co.in" className="text-yellow-700 hover:text-yellow-800 hover:underline">
-                      info@quantalyze.co.in
+                    <a href={`mailto:${contactEmail}`} className="text-yellow-700 hover:text-yellow-800 hover:underline">
+                      {contactEmail}
                     </a>
                   </div>
                 </div>

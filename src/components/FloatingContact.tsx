@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FaComments, FaTimes, FaWhatsapp, FaEnvelope, FaPhone } from "react-icons/fa";
+import { contactEmail } from '@/config/email';
 
 export default function FloatingContact() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +19,7 @@ export default function FloatingContact() {
     {
       name: "Email",
       icon: FaEnvelope,
-      href: "mailto:info@quantalyze.co.in",
+      href: `mailto:${contactEmail}`,
       color: "bg-yellow-500 hover:bg-yellow-600",
     },
     {
@@ -61,7 +62,9 @@ export default function FloatingContact() {
         aria-label="Contact options"
       >
         {isOpen ? (
-          <FaTimes className="w-6 h-6 text-white" />
+          <a href={`mailto:${contactEmail}`} className="hidden md:inline-flex items-center gap-2 hover:text-yellow-700 transition-colors">
+            <FaEnvelope className="text-yellow-600" /> {contactEmail}
+          </a>
         ) : (
           <FaComments className="w-6 h-6 text-black" />
         )}

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { contactEmail } from '@/config/email';
 import { initContentTables } from '@/lib/content-utils';
 import { fallbackQuery } from '@/lib/fallback-db';
 
@@ -41,7 +42,7 @@ const websiteStructure = {
       contact: {
         title: { type: "text", value: "Get In Touch" },
         subtitle: { type: "text", value: "Ready to transform your digital presence?" },
-        email: { type: "text", value: "info@quantalyze.co.in" },
+        email: { type: "text", value: contactEmail },
         phone: { type: "text", value: "+91 8770338369" },
         address: { type: "text", value: "Remote Digital Agency - Serving Clients Worldwide" }
       }
