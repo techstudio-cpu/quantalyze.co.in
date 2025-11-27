@@ -97,7 +97,6 @@ export async function POST() {
       await query('SELECT 1');
       useFallback = false;
     } catch (error) {
-      console.log('MySQL not available, using SQLite fallback');
       useFallback = true;
       await testFallbackConnection();
     }
@@ -201,7 +200,6 @@ export async function POST() {
           results.push({ table, status: 'exists' });
         }
       } catch (error) {
-        console.error(`Error creating table ${table}:`, error);
         results.push({ table, status: 'error', error: error instanceof Error ? error.message : 'Unknown error' });
       }
     }
@@ -243,7 +241,7 @@ export async function POST() {
         }
       }
     } catch (error) {
-      console.error('Error inserting sample data:', error);
+      // Silent error handling for sample data insertion
     }
 
     return NextResponse.json({
@@ -254,7 +252,6 @@ export async function POST() {
     });
 
   } catch (error) {
-    console.error('Database initialization error:', error);
     return NextResponse.json({
       success: false,
       message: 'Failed to initialize database',

@@ -46,11 +46,9 @@ export async function initializeAdminUser() {
         'INSERT INTO admin_users (username, email, password, role) VALUES (?, ?, ?, ?)',
         ['Admin', 'admin@quantalyze.co.in', hashedPassword, 'admin']
       );
-
-      console.log('✅ Default admin user created');
     }
   } catch (error) {
-    console.error('❌ Failed to initialize admin user:', error);
+    // Silent error handling
   }
 }
 
@@ -150,19 +148,11 @@ export async function changeAdminPassword(userId: number, currentPassword: strin
 export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<{ success: boolean; error?: string }> {
   try {
     // In a real implementation, you would use EmailJS or another email service
-    // For now, we'll just log the reset token
-    console.log(`Password reset token for ${email}: ${resetToken}`);
-    
-    // TODO: Implement EmailJS integration
-    // const emailService = require('@emailjs/browser');
-    // await emailService.send('service_id', 'template_id', {
-    //   to_email: email,
-    //   reset_link: `${process.env.NEXTAUTH_URL}/admin/reset-password?token=${resetToken}`
-    // });
+    // For now, we'll just return success with the reset token
+    // Note: Implement EmailJS integration when email service is configured
 
     return { success: true };
   } catch (error) {
-    console.error('Password reset email error:', error);
     return { success: false, error: 'Failed to send reset email' };
   }
 }

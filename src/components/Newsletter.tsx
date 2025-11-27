@@ -51,7 +51,6 @@ export default function Newsletter() {
         }
       }
     } catch (error) {
-      console.error('Newsletter subscription error:', error);
       alert('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);

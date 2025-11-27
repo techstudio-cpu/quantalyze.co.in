@@ -30,9 +30,7 @@ export async function initContentTables() {
       )
     `);
 
-    console.log('✅ Content tables initialized');
   } catch (error) {
-    console.error('❌ Failed to initialize content tables:', error);
     throw error;
   }
 }

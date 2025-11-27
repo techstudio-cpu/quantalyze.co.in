@@ -111,22 +111,15 @@ const websiteStructure = {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🚀 Starting content initialization...');
-    
     // Initialize tables first
-    console.log('📋 Initializing content tables...');
     await initContentTables();
-    console.log('✅ Content tables initialized successfully');
     
     let insertedSections = 0;
     let insertedContent = 0;
     
-    console.log('📊 Starting to insert sections and content...');
-    
     // Insert sections and content
     for (const [sectionId, sectionData] of Object.entries(websiteStructure)) {
       const section = sectionData as any;
-      console.log(`📝 Processing section: ${sectionId}`);
       
       // Insert section
       await fallbackQuery(`
@@ -135,12 +128,10 @@ export async function POST(request: NextRequest) {
         VALUES (?, ?, ?)
       `, [sectionId, section.sectionName, insertedSections]);
       insertedSections++;
-      console.log(`✅ Section "${sectionId}" inserted (${insertedSections}/${Object.keys(websiteStructure).length})`);
       
       // Insert content for each component
       for (const [componentId, componentData] of Object.entries(section.components)) {
         const component = componentData as any;
-        console.log(`🔧 Processing component: ${componentId} in section ${sectionId}`);
         
         for (const [fieldName, fieldData] of Object.entries(component)) {
           const field = fieldData as any;
@@ -152,11 +143,7 @@ export async function POST(request: NextRequest) {
           `, [sectionId, componentId, fieldName, field.value, field.type]);
           insertedContent++;
         }
-      }
-      console.log(`✅ Section "${sectionId}" completed with ${Object.keys(section.components).length} components`);
     }
-    
-    console.log(`🎉 Initialization complete: ${insertedSections} sections, ${insertedContent} content items`);
     
     return NextResponse.json({
       success: true,
@@ -167,8 +154,6 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('❌ Error initializing content:', error);
-    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json({
       success: false,
       message: 'Failed to initialize content',

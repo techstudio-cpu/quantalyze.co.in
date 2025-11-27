@@ -41,7 +41,6 @@ export default function Contact() {
         setIsSuccess(false);
       }, 5000);
     } catch (error) {
-      console.error("Error sending email:", error);
       alert("Failed to send message. Please try again.");
     } finally {
       setIsSubmitting(false);

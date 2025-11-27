@@ -16,10 +16,7 @@ export async function initFallbackDB() {
     const dataDir = path.dirname(dbPath);
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
-      console.log('Created data directory:', dataDir);
     }
-    
-    console.log('Initializing SQLite database at:', dbPath);
     
     db = await open({
       filename: dbPath,
@@ -39,10 +36,8 @@ export async function initFallbackDB() {
       )
     `);
 
-    console.log('✅ SQLite fallback database initialized');
     return db;
   } catch (error) {
-    console.error('❌ Failed to initialize SQLite database:', error);
     throw error;
   }
 }
