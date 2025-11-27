@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaPaperPlane } from "react-icons/fa";
+import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaPaperPlane, FaCheckCircle } from "react-icons/fa";
 import { contactEmail } from '@/config/email';
+import { useForm } from 'react-hook-form';
 
 type FormData = {
   name: string;
