@@ -143,6 +143,7 @@ export async function POST(request: NextRequest) {
           `, [sectionId, componentId, fieldName, field.value, field.type]);
           insertedContent++;
         }
+      }
     }
     
     return NextResponse.json({
