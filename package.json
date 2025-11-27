@@ -1,17 +1,32 @@
 {
   "name": "quantalyze-digital-agency",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:production": "NODE_ENV=production next build",
+    "start:production": "NODE_ENV=production next start",
+    "export": "next build && next export",
+    "postbuild": "next-sitemap",
+    "type-check": "tsc --noEmit",
+    "analyze": "ANALYZE=true next build",
+    "railway:build": "npm install && npm run build",
+    "railway:start": "npm start",
+    "deploy:railway": "npm run build && git add . && git commit -m 'Deploy to Railway' && git push"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/sqlite3": "^3.1.11",
+    "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.15.3",
     "next": "15.0.0",
     "next-seo": "^7.0.1",
     "next-sitemap": "^4.2.3",
@@ -21,6 +36,8 @@
     "react-hook-form": "^7.65.0",
     "react-icons": "^5.5.0",
     "react-scroll": "^1.9.3",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -33,5 +50,9 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }

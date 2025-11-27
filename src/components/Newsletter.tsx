@@ -10,18 +10,52 @@ export default function Newsletter() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // On production/static builds (like Serverbyt), disable live newsletter submission
+    if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      alert('Newsletter subscription is currently disabled on the live static site. Please contact us via the contact form instead.');
+      return;
+    }
+
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      // Use main newsletter endpoint in environments where the API is available
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          preferences: ['digital-trends', 'marketing-insights', 'ai-updates']
+        }),
+      });
 
-    setIsSuccess(true);
-    setEmail("");
-    setIsSubmitting(false);
+      const data = await response.json();
 
-    setTimeout(() => {
-      setIsSuccess(false);
-    }, 5000);
+      if (data.success) {
+        setIsSuccess(true);
+        setEmail("");
+        
+        // Reset success state after 5 seconds
+        setTimeout(() => {
+          setIsSuccess(false);
+        }, 5000);
+      } else {
+        // Handle error cases
+        if (data.alreadySubscribed) {
+          alert(data.message);
+        } else {
+          alert(`Subscription failed: ${data.message}`);
+        }
+      }
+    } catch (error) {
+      console.error('Newsletter subscription error:', error);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -48,6 +82,13 @@ export default function Newsletter() {
               Subscribe to our newsletter for the latest insights, tips, and exclusive offers delivered to your inbox.
             </p>
             
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
+              <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">📈 Marketing Insights</span>
+              <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">🤖 AI Updates</span>
+              <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">📊 Digital Trends</span>
+              <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">🎯 Exclusive Offers</span>
+            </div>
+            
             <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
               <div className="flex flex-col sm:flex-row gap-4">
                 <input
@@ -56,7 +97,7 @@ export default function Newsletter() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email address"
                   required
-                  className="flex-1 px-6 py-4 rounded-full text-gray-900 bg-white focus:ring-4 focus:ring-yellow-200 focus:outline-none transition border-2 border-transparent"
+                  className="flex-1 px-6 py-4 rounded-full text-gray-900 bg-white focus:ring-4 focus:ring-yellow-200 focus:outline-none transition border-2 border-transparent placeholder-gray-500"
                 />
                 <button
                   type="submit"

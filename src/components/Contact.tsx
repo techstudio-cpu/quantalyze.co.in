@@ -224,8 +224,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <div className="font-semibold text-gray-900 mb-1">Email</div>
-                    <a href="mailto:contact@quantalyzemarketer.com" className="text-yellow-700 hover:text-yellow-800 hover:underline">
-                      contact@quantalyzemarketer.com
+                    <a href="mailto:info@quantalyze.co.in" className="text-yellow-700 hover:text-yellow-800 hover:underline">
+                      info@quantalyze.co.in
                     </a>
                   </div>
                 </div>
@@ -236,8 +236,11 @@ export default function Contact() {
                   </div>
                   <div>
                     <div className="font-semibold text-gray-900 mb-1">Phone</div>
-                    <a href="tel:+919202509190" className="text-yellow-700 hover:text-yellow-800 hover:underline">
-                      +91-9202509190
+                    <a href="tel:+918770338369" className="text-yellow-700 hover:text-yellow-800 hover:underline block">
+                      +91 8770338369
+                    </a>
+                    <a href="tel:+916357410889" className="text-yellow-700 hover:text-yellow-800 hover:underline block">
+                      +91 6357410889
                     </a>
                   </div>
                 </div>
@@ -247,10 +250,10 @@ export default function Contact() {
                     <FaMapMarkerAlt className="text-black text-xl" />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 mb-1">Office</div>
+                    <div className="font-semibold text-gray-900 mb-1">Address</div>
                     <p className="text-gray-700">
-                      Remote<br />
-                      (Address to be updated soon)
+                      Remote Digital Agency<br />
+                      Serving Clients Worldwide
                     </p>
                   </div>
                 </div>
@@ -265,15 +268,15 @@ export default function Contact() {
               <div className="space-y-3 text-gray-700">
                 <div className="flex justify-between">
                   <span className="font-medium">Monday - Friday</span>
-                  <span>9:00 AM - 6:00 PM</span>
+                  <span>9:00 AM - 8:00 PM</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Saturday</span>
-                  <span>10:00 AM - 4:00 PM</span>
+                  <span>10:00 AM - 10:00 PM</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Sunday</span>
-                  <span>Closed</span>
+                  <span>10:00 AM - 10:00 PM</span>
                 </div>
               </div>
             </div>

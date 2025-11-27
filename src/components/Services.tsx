@@ -1,125 +1,187 @@
 "use client";
 
-import { 
-  FaBullhorn, 
-  FaPenNib, 
-  FaChartLine, 
-  FaUsers, 
-  FaSearch, 
-  FaComments, 
-  FaCode, 
+import { useState } from "react";
+import Link from "next/link";
+import {
+  FaBullhorn,
+  FaChartLine,
+  FaChevronDown,
+  FaCode,
+  FaGlobe,
   FaPalette,
-  FaVideo,
-  FaMobileAlt,
-  FaEnvelope,
-  FaGlobe
+  FaRobot,
 } from "react-icons/fa";
 
 const services = [
-  { 
-    name: "Social Media Strategy", 
+  {
+    name: "Automation Workflow / AI Agents",
+    icon: FaRobot,
+    tagline: "Automate customer journeys with AI-first workflows.",
+    href: "/services/ai-automation/",
+    subServices: [
+      "AI Agents & Copilots",
+      "Workflow Automation (n8n, Zapier)",
+      "Custom Chatbots",
+      "Analytics Dashboards",
+    ],
+  },
+  {
+    name: "Digital Marketing",
     icon: FaBullhorn,
-    description: "Data-driven strategies to amplify your brand's social presence and engagement.",
+    tagline: "Performance marketing that turns attention into revenue.",
+    href: "/services/",
+    subServices: [
+      "Social Media Campaigns",
+      "Content & Influencer Strategy",
+      "SEO & ASO",
+      "Performance Ads",
+    ],
   },
-  { 
-    name: "Content Creation", 
-    icon: FaPenNib,
-    description: "Compelling content that tells your story and resonates with your audience.",
-  },
-  { 
-    name: "Paid Advertising", 
-    icon: FaChartLine,
-    description: "ROI-focused ad campaigns across Google, Facebook, Instagram, and more.",
-  },
-  { 
-    name: "Influencer Marketing", 
-    icon: FaUsers,
-    description: "Connect with the right influencers to expand your brand's reach.",
-  },
-  { 
-    name: "SEO Optimization", 
-    icon: FaSearch,
-    description: "Rank higher on search engines and drive organic traffic to your site.",
-  },
-  { 
-    name: "Community Management", 
-    icon: FaComments,
-    description: "Build and nurture engaged communities around your brand.",
-  },
-  { 
-    name: "Web Development", 
+  {
+    name: "Web / App Development",
     icon: FaCode,
-    description: "Custom websites and web applications built with modern technologies.",
+    tagline: "High-converting web and mobile experiences built fast.",
+    href: "/services/website-development/",
+    subServices: [
+      "Corporate Websites",
+      "Ecommerce Stores",
+      "Progressive Web Apps",
+      "Mobile Apps (iOS & Android)",
+    ],
   },
-  { 
-    name: "Brand Identity", 
+  {
+    name: "Branding",
     icon: FaPalette,
-    description: "Create memorable brand identities that stand out in the market.",
+    tagline: "Bold identities that stay consistent across every touchpoint.",
+    href: "/services/graphics-design/",
+    subServices: [
+      "Brand Strategy Sprints",
+      "Visual Identity Design",
+      "Packaging & Collateral",
+      "Brand Playbooks",
+    ],
   },
-  { 
-    name: "Video Production", 
-    icon: FaVideo,
-    description: "Professional video content that captures attention and tells your story.",
+  {
+    name: "Lead Generation",
+    icon: FaChartLine,
+    tagline: "Demand engines that keep your pipeline full.",
+    href: "/#contact",
+    subServices: [
+      "Paid Media Funnels",
+      "Landing Page Optimization",
+      "CRM & Marketing Automation",
+      "Sales Enablement Content",
+    ],
   },
-  { 
-    name: "Mobile App Development", 
-    icon: FaMobileAlt,
-    description: "Native and cross-platform mobile apps for iOS and Android.",
-  },
-  { 
-    name: "Email Marketing", 
-    icon: FaEnvelope,
-    description: "Targeted email campaigns that convert subscribers into customers.",
-  },
-  { 
-    name: "Analytics & Reporting", 
+  {
+    name: "Global Expansion (GEO)",
     icon: FaGlobe,
-    description: "Comprehensive insights and reporting to measure your digital success.",
+    tagline: "Localized playbooks to win in every market you enter.",
+    href: "/#contact",
+    subServices: [
+      "Market Localization",
+      "Regional Campaign Management",
+      "Multi-language SEO",
+      "Partnership Activation",
+    ],
   },
 ];
 
 export default function Services() {
+  const [activeIndex, setActiveIndex] = useState<number | null>(0);
+
+  const handleToggle = (index: number) => {
+    setActiveIndex((prev) => (prev === index ? null : index));
+  };
+
   return (
-    <section id="services" className="py-20 bg-gradient-to-br from-gray-50 to-white">
+    <section id="services" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16 animate-fade-in-up">
-          <h2 className="text-base text-yellow-600 font-semibold tracking-wide uppercase mb-3 animate-slide-in-left">
-            What We Offer
+          <h2 className="text-base text-yellow-600 font-semibold tracking-wide uppercase mb-3">
+            Our Services / Solutions
           </h2>
-          <h3 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 animate-fade-in-up delay-200">
-            Our Services
+          <h3 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
+            We Deliver Service According To Your Needs
           </h3>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto animate-fade-in-up delay-400">
-            Comprehensive digital marketing and development solutions tailored to help your brand thrive in the digital landscape.
+          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+            Comprehensive digital solutions to help your brand succeed online.
           </p>
         </div>
 
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service, index) => (
-            <div
-              key={index}
-              className="group relative bg-yellow-50 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:rotate-1 border border-yellow-200 animate-fade-in-up"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              {/* Icon */}
-              <div className="inline-flex p-4 rounded-xl bg-yellow-400 mb-5 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 animate-bounce-in">
-                <service.icon className="w-8 h-8 text-black" />
+          {services.map((service, index) => {
+            const isActive = activeIndex === index;
+            return (
+              <div
+                key={service.name}
+                className="group relative flex h-full flex-col overflow-hidden rounded-[28px] border border-yellow-400/10 bg-white/80 p-[1px] shadow-[0_24px_46px_-32px_rgba(17,24,39,0.55)] transition-all duration-500 hover:-translate-y-3 hover:-rotate-[0.65deg] hover:border-yellow-400/40 hover:shadow-[0_38px_70px_-30px_rgba(17,24,39,0.55)]"
+                onMouseEnter={() => setActiveIndex(index)}
+                onFocus={() => setActiveIndex(index)}
+              >
+                <span className="pointer-events-none absolute inset-0 bg-gradient-to-br from-yellow-400/0 via-yellow-300/15 to-yellow-500/30 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                <span className="pointer-events-none absolute -inset-[55%] bg-gradient-to-br from-yellow-400/0 via-yellow-400/12 to-yellow-500/25 blur-3xl opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
+
+                <div className="relative z-10 flex h-full flex-col rounded-[24px] border border-white/60 bg-white/95 p-7 backdrop-blur-xl transition-all duration-500 group-hover:border-yellow-200/60 group-hover:bg-white">
+                  <button
+                    type="button"
+                    onClick={() => handleToggle(index)}
+                    className="flex w-full items-start gap-4 text-left focus:outline-none"
+                    aria-expanded={isActive}
+                  >
+                    <div className="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-yellow-200 via-yellow-400 to-yellow-500 text-white shadow-[0_16px_30px_-18px_rgba(234,179,8,0.75)] transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110 group-hover:shadow-[0_24px_38px_-20px_rgba(234,179,8,0.6)]">
+                      <service.icon className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <h4 className="text-xl font-semibold text-gray-900 transition-colors duration-500 group-hover:text-yellow-600">
+                          {service.name}
+                        </h4>
+                        <FaChevronDown
+                          className={`mt-1 h-5 w-5 flex-shrink-0 transition-transform duration-300 ${
+                            isActive ? "rotate-180 text-yellow-600" : "text-gray-400"
+                          }`}
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <p className="text-gray-600 text-sm leading-relaxed transition-colors duration-500 group-hover:text-gray-700">
+                        {service.tagline}
+                      </p>
+                    </div>
+                  </button>
+
+                  <div
+                    className={`grid transition-all duration-300 ease-out ${
+                      isActive
+                        ? "mt-6 grid-rows-[1fr] opacity-100"
+                        : "grid-rows-[0fr] opacity-0"
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <ul className="space-y-3 text-sm text-gray-700">
+                        {service.subServices.map((item) => (
+                          <li key={item} className="flex items-start gap-3">
+                            <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-yellow-400" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <Link
+                        href={service.href}
+                        className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-yellow-700 transition-colors hover:text-yellow-800"
+                      >
+                        Explore Service
+                        <span aria-hidden="true">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              {/* Content */}
-              <h4 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-yellow-700 transition-colors duration-300">
-                {service.name}
-              </h4>
-              <p className="text-gray-700 leading-relaxed group-hover:text-gray-800 transition-colors duration-300">
-                {service.description}
-              </p>
-
-              {/* Hover Effect Line */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-yellow-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 rounded-b-2xl"></div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* CTA */}

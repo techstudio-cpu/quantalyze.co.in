@@ -18,13 +18,13 @@ export default function FloatingContact() {
     {
       name: "Email",
       icon: FaEnvelope,
-      href: "mailto:contact@quantalyzemarketer.com",
+      href: "mailto:info@quantalyze.co.in",
       color: "bg-yellow-500 hover:bg-yellow-600",
     },
     {
       name: "Call",
       icon: FaPhone,
-      href: "tel:+919202509190",
+      href: "tel:+918770338369",
       color: "bg-gray-900 hover:bg-black",
     },
   ];

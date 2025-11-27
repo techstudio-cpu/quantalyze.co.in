@@ -9,28 +9,27 @@ export default function Footer() {
 
   const footerLinks = {
     company: [
-      { name: "About Us", href: "#about" },
-      { name: "Our Team", href: "#team" },
-      { name: "Careers", href: "#careers" },
-      { name: "Contact", href: "#contact" },
+      { name: "About Us", href: "/about/" },
+      { name: "Our Team", href: "/about/" },
+      { name: "Careers", href: "/about/" },
+      { name: "Contact", href: "/contact/" },
     ],
     services: [
-      { name: "Digital Marketing", href: "#services" },
-      { name: "Web Development", href: "#services" },
-      { name: "SEO Services", href: "#services" },
-      { name: "Brand Strategy", href: "#services" },
+      { name: "Digital Marketing", href: "/services/" },
+      { name: "Web Development", href: "/services/" },
+      { name: "SEO Services", href: "/services/" },
+      { name: "Brand Strategy", href: "/services/" },
     ],
     resources: [
-      { name: "Blog", href: "#blog" },
-      { name: "Case Studies", href: "#portfolio" },
-      { name: "Testimonials", href: "#testimonials" },
-      { name: "FAQ", href: "#faq" },
+      { name: "Blog", href: "/" },
+      { name: "Testimonials", href: "/testimonials/" },
+      { name: "FAQ", href: "/" },
     ],
     legal: [
-      { name: "Privacy Policy", href: "#privacy" },
-      { name: "Terms of Service", href: "#terms" },
-      { name: "Cookie Policy", href: "#cookies" },
-      { name: "GDPR", href: "#gdpr" },
+      { name: "Privacy Policy", href: "/privacy-policy/" },
+      { name: "Terms & Conditions", href: "/terms-and-conditions/" },
+      { name: "Disclaimer", href: "/disclaimer/" },
+      { name: "Cookie Policy", href: "/" },
     ],
   };
 
@@ -156,26 +155,33 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="text-gray-700 text-sm mb-4 md:mb-0">
-              © {currentYear} Quantalyze. All rights reserved.
+              {currentYear} Quantalyze. All rights reserved.
             </div>
             
             {/* Legal Links */}
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm mb-4 md:mb-0">
               {footerLinks.legal.map((link) => (
-                <a
+                <Link
                   key={link.name}
                   href={link.href}
                   className="text-gray-700 hover:text-yellow-600 transition-colors duration-200"
                 >
                   {link.name}
-                </a>
+                </Link>
               ))}
             </div>
 
             {/* Technology Partner */}
             <div className="text-sm text-gray-700 flex items-center">
               <span>Technology Partner: </span>
-              <span className="ml-1 font-semibold text-yellow-700">Shubham Tiwari</span>
+              <a 
+                href="https://techstudio.co.in" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="ml-1 font-semibold text-yellow-700 hover:text-yellow-800 underline"
+              >
+                Tech Studio
+              </a>
               <FaHeart className="ml-1 text-red-500 animate-pulse" />
             </div>
           </div>

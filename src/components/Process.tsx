@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { FaSearch, FaLightbulb, FaCode, FaRocket, FaChartBar } from "react-icons/fa";
 
 const steps = [
@@ -36,77 +37,120 @@ const steps = [
 ];
 
 export default function Process() {
+  const [activeStep, setActiveStep] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % steps.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <section id="process" className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-base text-yellow-600 font-semibold tracking-wide uppercase mb-3">
-            How We Work
-          </h2>
-          <h3 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-            Our Process
-          </h3>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-            A proven methodology that delivers results. From discovery to optimization, we&apos;ve got you covered every step of the way.
-          </p>
-        </div>
+    <section id="process" className="relative overflow-hidden py-24">
+      <div className="absolute inset-0 bg-white" />
+      <div className="pointer-events-none absolute top-0 left-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-yellow-200/30 blur-3xl" style={{ animation: "process-orbit 28s linear infinite" }} />
+      <div className="pointer-events-none absolute bottom-0 right-10 h-[360px] w-[360px] translate-y-1/3 rounded-full bg-yellow-400/25 blur-2xl" style={{ animation: "process-orbit 32s linear infinite reverse" }} />
 
-        {/* Process Steps */}
-        <div className="relative">
-          {/* Connection Line - Hidden on Mobile */}
-          <div className="hidden lg:block absolute top-24 left-0 right-0 h-1 bg-yellow-400"></div>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-16 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+          {/* Narrative column */}
+          <div className="space-y-8">
+            <div className="inline-flex items-center gap-2 rounded-full bg-yellow-100/80 px-5 py-2 text-sm font-semibold text-yellow-700 shadow ring-1 ring-yellow-200/60 backdrop-blur">
+              <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+              How Quantalyze ships momentum fast
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-4">
-            {steps.map((step, index) => (
-              <div key={index} className="relative">
-                {/* Card */}
-                <div className="bg-yellow-50 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-yellow-200 h-full">
-                  {/* Step Number */}
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-400 text-black font-bold text-2xl mb-4 shadow-lg">
-                    {step.number}
-                  </div>
+            <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900">
+              One seamless pod executing <span className="hero-text-gradient">end-to-end growth</span>
+            </h2>
 
-                  {/* Icon */}
-                  <div className="mb-4">
-                    <step.icon className="w-10 h-10 text-yellow-600" />
-                  </div>
+            <p className="text-lg text-gray-600">
+              Every engagement moves through a repeatable flywheel. Automation brings speed, human insight keeps it sharp, and measurement makes the next sprint smarter.
+            </p>
 
-                  {/* Title */}
-                  <h4 className="text-xl font-bold text-gray-900 mb-3">
-                    {step.title}
-                  </h4>
-
-                  {/* Description */}
-                  <p className="text-gray-700 text-sm leading-relaxed">
-                    {step.description}
-                  </p>
-                </div>
-
-                {/* Arrow - Hidden on Mobile */}
-                {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-20 -right-4 text-yellow-400 text-4xl z-10">
-                    →
-                  </div>
-                )}
+            <div className="rounded-3xl border border-yellow-200/60 bg-white/80 p-6 shadow-lg backdrop-blur">
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-yellow-500">Five-stage flywheel</p>
+              <div className="mt-4 space-y-3">
+                {steps.map((step, index) => (
+                  <button
+                    key={step.title}
+                    type="button"
+                    onMouseEnter={() => setActiveStep(index)}
+                    onFocus={() => setActiveStep(index)}
+                    className={`flex w-full items-center gap-4 rounded-2xl border px-4 py-3 text-left transition-all duration-300 ${
+                      activeStep === index
+                        ? "border-yellow-400/80 bg-yellow-100/70 shadow-md"
+                        : "border-yellow-200/40 bg-white/60 hover:border-yellow-300/70 hover:bg-white"
+                    }`}
+                  >
+                    <span className="text-sm font-bold text-yellow-600">{step.number}</span>
+                    <span className="text-sm font-semibold text-gray-700">{step.title}</span>
+                  </button>
+                ))}
               </div>
-            ))}
+            </div>
+          </div>
+
+          {/* Timeline column */}
+          <div className="relative">
+            <div className="absolute inset-4 rounded-[42px] bg-gradient-to-br from-yellow-200/40 via-yellow-300/30 to-yellow-500/20 blur-3xl" style={{ animation: "gradient-pan 18s ease-in-out infinite" }} />
+
+            <div className="relative overflow-hidden rounded-[40px] border border-yellow-200/60 bg-white/80 p-10 shadow-[0_48px_100px_-48px_rgba(250,204,21,0.65)] backdrop-blur-xl">
+              <div className="relative grid gap-8">
+                <div className="absolute left-[22px] top-0 h-full w-[2px] bg-gradient-to-b from-yellow-400 via-yellow-300 to-yellow-200" aria-hidden />
+
+                {steps.map((step, index) => {
+                  const isActive = activeStep === index;
+                  return (
+                    <div key={step.title} className="relative">
+                      <div className={`absolute -left-[11px] top-3 h-5 w-5 rounded-full border-2 ${
+                        isActive ? "border-yellow-500 bg-yellow-400" : "border-yellow-300 bg-white"
+                      } shadow`} />
+
+                      <div
+                        className={`group relative ml-12 flex flex-col gap-3 rounded-3xl border px-6 py-5 transition-all duration-500 ${
+                          isActive
+                            ? "border-yellow-400/80 bg-gradient-to-br from-yellow-100/80 via-white to-yellow-50 shadow-2xl"
+                            : "border-yellow-200/50 bg-white/70 hover:border-yellow-300/70 hover:bg-white"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-yellow-200 via-yellow-400 to-yellow-500 text-black shadow-lg">
+                            <step.icon className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-yellow-500">{step.number}</p>
+                            <h3 className="text-lg font-bold text-gray-900">{step.title}</h3>
+                          </div>
+                        </div>
+
+                        <p className="text-sm leading-relaxed text-gray-600">{step.description}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Text */}
-        <div className="mt-16 text-center">
-          <p className="text-lg text-gray-700 mb-6">
-            Every project is unique, and we adapt our process to fit your specific needs.
-          </p>
-          <a
-            href="#contact"
-            className="inline-block px-8 py-4 bg-yellow-400 text-black rounded-full font-bold text-lg shadow-xl hover:bg-yellow-500 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-          >
-            Start Your Project
-          </a>
+        <div className="mt-16 rounded-3xl bg-yellow-100/80 px-8 py-6 text-center text-gray-800 shadow-lg ring-1 ring-yellow-200/70">
+          <p className="text-lg font-semibold">Every project gets a custom roadmap, weekly rituals, and an embedded squad until wins compound.</p>
         </div>
       </div>
+
+      <style jsx global>{`
+        @keyframes process-orbit {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
     </section>
   );
 }

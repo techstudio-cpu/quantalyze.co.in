@@ -1,9 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'export', // Static site export for traditional hosting
+  // Enable API routes for Railway deployment
+  output: undefined,
+  
+  // Production optimizations
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  
+  // Image optimization for production
   images: {
-    unoptimized: true, // Required for static export
     remotePatterns: [
       {
         protocol: 'https',
@@ -13,9 +24,52 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'i.pravatar.cc',
       },
+      {
+        protocol: 'https',
+        hostname: 'railway.app',
+      },
     ],
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
   },
-  trailingSlash: true, // Better compatibility with traditional servers
+  
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
+  
+  // Compression
+  compress: true,
+  
+  // Power by header
+  poweredByHeader: false,
+  
+  // Trailing slash for better compatibility
+  trailingSlash: true,
+  
+  // Environment-specific settings
+  ...(process.env.NODE_ENV === 'production' && {
+    // Production-only optimizations
+    // swcMinify is now default in Next.js 15
+  }),
 };
 
 export default nextConfig;
