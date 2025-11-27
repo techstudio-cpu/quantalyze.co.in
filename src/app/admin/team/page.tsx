@@ -21,7 +21,7 @@ export default function TeamPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -113,7 +113,7 @@ export default function TeamPage() {
       avatar: member.avatar || '',
       status: member.status
     });
-    setIsEditing(true);
+    setShowModal(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -136,7 +136,7 @@ export default function TeamPage() {
       if (response.ok) {
         fetchTeamMembers();
         setSelectedMember(null);
-        setIsEditing(false);
+        setShowModal(false);
       } else {
         alert('Failed to remove team member');
       }
@@ -151,10 +151,10 @@ export default function TeamPage() {
     
     try {
       const token = localStorage.getItem('adminToken');
-      const url = isEditing && selectedMember ? '/api/admin/team' : '/api/admin/team';
-      const method = isEditing && selectedMember ? 'PATCH' : 'POST';
+      const url = selectedMember ? '/api/admin/team' : '/api/admin/team';
+      const method = selectedMember ? 'PATCH' : 'POST';
       
-      const payload = isEditing && selectedMember 
+      const payload = selectedMember 
         ? { id: selectedMember.id, ...formData }
         : formData;
 
@@ -170,7 +170,7 @@ export default function TeamPage() {
       if (response.ok) {
         fetchTeamMembers();
         setSelectedMember(null);
-        setIsEditing(false);
+        setShowModal(false);
         setFormData({
           name: '',
           email: '',
@@ -243,7 +243,7 @@ export default function TeamPage() {
                 <button
                   onClick={() => {
                     setSelectedMember(null);
-                    setIsEditing(false);
+                    setShowModal(true);
                     setFormData({
                       name: '',
                       email: '',
@@ -344,17 +344,17 @@ export default function TeamPage() {
               </div>
 
               {/* Add/Edit Team Member Modal */}
-              {(isEditing || !selectedMember) && (
+              {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                   <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-xl font-bold text-gray-900">
-                        {isEditing ? 'Edit Team Member' : 'Add New Team Member'}
+                        {selectedMember ? 'Edit Team Member' : 'Add New Team Member'}
                       </h2>
                       <button
                         onClick={() => {
                           setSelectedMember(null);
-                          setIsEditing(false);
+                          setShowModal(false);
                         }}
                         className="text-gray-400 hover:text-gray-600"
                       >
@@ -470,7 +470,7 @@ export default function TeamPage() {
                           type="button"
                           onClick={() => {
                             setSelectedMember(null);
-                            setIsEditing(false);
+                            setShowModal(false);
                           }}
                           className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
                         >
@@ -480,7 +480,7 @@ export default function TeamPage() {
                           type="submit"
                           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                         >
-                          {isEditing ? 'Update Member' : 'Add Member'}
+                          {selectedMember ? 'Update Member' : 'Add Member'}
                         </button>
                       </div>
                     </form>
