@@ -1,6 +1,5 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   // Enable API routes for Railway deployment
   output: undefined,
   
@@ -68,8 +67,7 @@ const nextConfig: NextConfig = {
   // Environment-specific settings
   ...(process.env.NODE_ENV === 'production' && {
     // Production-only optimizations
-    // swcMinify is now default in Next.js 15
   }),
 };
 
-export default nextConfig;
+module.exports = nextConfig;
