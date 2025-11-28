@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import { fallbackQuery, testFallbackConnection } from '@/lib/fallback-db';
+import { fallbackQuery, fallbackRun, testFallbackConnection } from '@/lib/fallback-db';
+import { defaultServices, mapRowToService } from '@/lib/services-data';
 
 // Check if we should use fallback (MySQL connection issues)
 let useFallback = false;
@@ -21,18 +22,52 @@ async function checkFallback() {
   return useFallback;
 }
 
-// GET /api/admin/services - Fetch all services
+async function seedDefaultServices() {
+  const insertSql = `INSERT INTO services (title, description, icon, category, price, featured, status) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+  for (const seed of defaultServices) {
+    const statusJson = JSON.stringify(seed.subServices || []);
+    const params = [
+      seed.name,
+      seed.tagline,
+      seed.icon,
+      seed.href,
+      seed.price || null,
+      seed.order,
+      statusJson,
+    ];
+
+    if (useFallback) {
+      await fallbackRun(insertSql, params);
+    } else {
+      await query(insertSql, params);
+    }
+  }
+}
+
+// GET /api/admin/services - Fetch all services and map to admin UI shape
 export async function GET() {
   try {
     await checkFallback();
 
-    const services = useFallback
+    const rows = useFallback
       ? await fallbackQuery(
           'SELECT * FROM services ORDER BY created_at DESC'
         )
       : await query(
           'SELECT * FROM services ORDER BY created_at DESC'
         );
+
+    let servicesRows = Array.isArray(rows) ? rows : [];
+
+    if (servicesRows.length === 0) {
+      await seedDefaultServices();
+      servicesRows = useFallback
+        ? await fallbackQuery('SELECT * FROM services ORDER BY created_at DESC')
+        : await query('SELECT * FROM services ORDER BY created_at DESC');
+    }
+
+    const services = Array.isArray(servicesRows) ? servicesRows.map(mapRowToService) : [];
 
     return NextResponse.json({
       success: true,
@@ -50,39 +85,69 @@ export async function GET() {
   }
 }
 
-// POST /api/admin/services - Create new service
+// POST /api/admin/services - Create new service from admin UI shape
 export async function POST(request: NextRequest) {
   try {
     await checkFallback();
 
     const body = await request.json();
-    const { title, description, icon, category, price, featured = false, status = 'active' } = body;
+    const { name, tagline, icon, href, subServices, order, price } = body;
 
-    if (!title || !description) {
+    if (!name || !tagline) {
       return NextResponse.json({
         success: false,
-        message: 'Title and description are required'
+        message: 'Name and tagline are required'
       }, { status: 400 });
     }
 
-    const result = useFallback
-      ? await fallbackQuery(
-          `INSERT INTO services (title, description, icon, category, price, featured, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [title, description, icon || null, category || null, price || null, featured, status]
-        )
-      : await query(
-          `INSERT INTO services (title, description, icon, category, price, featured, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [title, description, icon || null, category || null, price || null, featured, status]
-        );
+    const statusJson = Array.isArray(subServices) ? JSON.stringify(subServices) : JSON.stringify([]);
+    const featured = typeof order === 'number' ? order : 1;
+    const category = href || '/services/';
+    const title = name;
+    const description = tagline;
 
+    const insertSql = `INSERT INTO services (title, description, icon, category, price, featured, status) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    const insertParams = [title, description, icon || null, category || null, price || null, featured, statusJson];
+
+    if (useFallback) {
+      const result = await fallbackRun(insertSql, insertParams);
+      return NextResponse.json({
+        success: true,
+        message: 'Service created successfully',
+        data: {
+          ...mapRowToService({
+            id: result.lastID,
+            title: name,
+            description: tagline,
+            icon,
+            category,
+            price,
+            featured,
+            status: statusJson,
+          }),
+        },
+        database: 'SQLite (Local)'
+      });
+    }
+
+    const result = await query(insertSql, insertParams) as any;
+    const insertedId = Array.isArray(result) ? result[0]?.insertId ?? result[0]?.id : result?.insertId ?? result?.id;
     return NextResponse.json({
       success: true,
       message: 'Service created successfully',
       data: {
-        id: Array.isArray(result) ? result[0]?.insertId : result?.insertId,
-        ...body
+        ...mapRowToService({
+          id: insertedId ?? '',
+          title: name,
+          description: tagline,
+          icon,
+          category,
+          price,
+          featured,
+          status: statusJson,
+        }),
       },
-      database: useFallback ? 'SQLite (Local)' : 'MySQL (Remote)'
+      database: 'MySQL (Remote)'
     });
 
   } catch (error) {
