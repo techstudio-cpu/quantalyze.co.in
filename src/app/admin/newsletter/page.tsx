@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import AdminSidebar from '@/components/admin/AdminSidebar';
 
 interface Subscriber {
   id: number;
@@ -169,9 +168,7 @@ export default function NewsletterManagement() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminSidebar />
-      
-      <div className="ml-64">
+      <div className="ml-0">
         {/* Header */}
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="px-6 py-4">

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { fallbackQuery, testFallbackConnection } from '@/lib/fallback-db';
-import z from 'zod';
+import { z } from 'zod';
 
 // Validation schema
 const newsletterSchema = z.object({

@@ -64,10 +64,18 @@ const nextConfig = {
   // Trailing slash for better compatibility
   trailingSlash: true,
   
-  // Environment-specific settings
-  ...(process.env.NODE_ENV === 'production' && {
-    // Production-only optimizations
-  }),
+  // Next.js 15 experimental features
+  experimental: {
+    // Enable optimized package imports
+    optimizePackageImports: ['lucide-react', '@heroicons/react', 'react-icons'],
+  },
+  
+  // Logging configuration for development
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
 };
 
 module.exports = nextConfig;

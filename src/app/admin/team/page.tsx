@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import AdminSidebar from '@/components/admin/AdminSidebar';
 
 interface TeamMember {
   id: number;
@@ -228,9 +227,7 @@ export default function TeamPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminSidebar />
-      
-      <div className="ml-64">
+      <div className="ml-0">
         {/* Header */}
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="px-6 py-4">

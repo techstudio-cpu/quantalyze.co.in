@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import AdminSidebar from '@/components/admin/AdminSidebar';
 
 interface ContentSection {
   id: string;
@@ -69,10 +68,8 @@ export default function ContentManagement() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminSidebar />
-      
       {/* Main Content */}
-      <div className="ml-64">
+      <div className="ml-0">
         {/* Top Header */}
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="px-6 py-4">

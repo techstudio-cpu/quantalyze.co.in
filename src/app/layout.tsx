@@ -1,9 +1,15 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import TopBar from "@/components/TopBar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { AdminLayoutWrapper } from "@/components/AdminLayoutWrapper";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#f59e0b",
+};
 
 export const metadata: Metadata = {
   title: "Quantalyze - Digital Marketing Agency | AI-Powered Growth Solutions",
@@ -22,7 +28,6 @@ export const metadata: Metadata = {
     title: "Quantalyze - AI-Powered Digital Marketing",
     description: "Transform your digital presence with our AI-powered marketing solutions",
   },
-  viewport: "width=device-width, initial-scale=1",
   robots: "index, follow",
 };
 
@@ -35,7 +40,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/images/quantalyze.ico" type="image/x-icon" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <meta name="theme-color" content="#f59e0b" />
       </head>
       <body className="min-h-screen font-sans bg-yellow-50 text-gray-900" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" }}>
         <AdminLayoutWrapper>

@@ -2,15 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 interface SidebarItem {
   title: string;
   href: string;
   icon: string;
+  exact?: boolean;
 }
 
 const sidebarItems: SidebarItem[] = [
-  { title: 'Dashboard', href: '/admin', icon: '🏠' },
+  { title: 'Dashboard', href: '/admin', icon: '🏠', exact: true },
   { title: 'Content', href: '/admin/content', icon: '📝' },
   { title: 'Services', href: '/admin/services', icon: '🛠️' },
   { title: 'Analytics', href: '/admin/analytics', icon: '📊' },
@@ -23,56 +25,89 @@ const sidebarItems: SidebarItem[] = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const isActive = (item: SidebarItem) => {
+    if (item.exact) {
+      return pathname === item.href;
+    }
+    return pathname.startsWith(item.href);
+  };
+
+  const handleLogout = () => {
+    // Clear client-side authentication
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUser');
+    document.cookie = 'adminToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    
+    // Redirect to login
+    router.push('/admin/login');
+  };
 
   return (
-    <div className="w-64 bg-white shadow-lg h-screen fixed left-0 top-0 z-10">
-      {/* Logo Section */}
-      <div className="bg-blue-600 text-white p-6">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-            <span className="text-blue-600 font-bold text-sm">Q</span>
+    <div className="hidden md:flex md:flex-shrink-0">
+      <div className="flex flex-col w-64 h-screen sticky top-0">
+        <div className="flex flex-col h-full border-r border-gray-200 bg-white">
+          {/* Logo Section */}
+          <div className="pt-5 pb-4 px-4">
+            <div className="flex items-center">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">Q</span>
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-gray-900">QUANTALYZE</h1>
+                  <p className="text-xs text-gray-500">Admin Panel</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-bold">QUANTALYZE</h1>
-            <p className="text-xs text-blue-100">Admin Panel</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="p-4">
-        <ul className="space-y-2">
-          {sidebarItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
-            
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <span className="text-xl">{item.icon}</span>
-                  <span className="font-medium">{item.title}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {/* User Section */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-            <span className="text-gray-600">👤</span>
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900">Admin</p>
-            <p className="text-xs text-gray-500">admin@quantalyze.co.in</p>
+          
+          {/* Navigation Items */}
+          <nav className="flex-1 overflow-y-auto">
+            <ul className="px-2 space-y-1">
+              {sidebarItems.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-md ${
+                      isActive(item)
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <span className="mr-3 text-lg">{item.icon}</span>
+                    {item.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          
+          {/* User Section */}
+          <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+            <div className="flex items-center w-full">
+              <div className="flex-shrink-0">
+                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                  <span className="text-gray-600">👤</span>
+                </div>
+              </div>
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-medium text-gray-700">Admin User</p>
+                <p className="text-xs font-medium text-gray-500">
+                  admin@quantalyze.co.in
+                </p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="ml-auto flex-shrink-0 bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                title="Sign out"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>

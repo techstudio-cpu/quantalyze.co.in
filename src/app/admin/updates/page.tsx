@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import AdminSidebar from '@/components/admin/AdminSidebar';
 
 interface Update {
   id: number;
@@ -22,6 +21,7 @@ export default function UpdatesPage() {
   const [error, setError] = useState('');
   const [selectedUpdate, setSelectedUpdate] = useState<Update | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -110,6 +110,7 @@ export default function UpdatesPage() {
       status: update.status
     });
     setIsEditing(true);
+    setIsModalOpen(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -269,9 +270,7 @@ export default function UpdatesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminSidebar />
-      
-      <div className="ml-64">
+      <div className="ml-0">
         {/* Header */}
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="px-6 py-4">
@@ -292,6 +291,7 @@ export default function UpdatesPage() {
                       priority: 'medium',
                       status: 'draft'
                     });
+                    setIsModalOpen(true);
                   }}
                   className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
                 >
@@ -392,15 +392,38 @@ export default function UpdatesPage() {
               </div>
 
               {/* Add/Edit Update Modal */}
-              {(isEditing || !selectedUpdate) && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                  <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-                    <div className="flex justify-between items-center mb-4">
+              {isModalOpen && (
+                <div 
+                  className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                  onClick={(e) => {
+                    // Close modal when clicking outside the content
+                    if (e.target === e.currentTarget) {
+                      setIsModalOpen(false);
+                      setIsEditing(false);
+                      setSelectedUpdate(null);
+                    }
+                  }}
+                >
+                  <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto relative">
+                    <button
+                      onClick={() => {
+                        setIsEditing(false);
+                        setSelectedUpdate(null);
+                      }}
+                      className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                      aria-label="Close modal"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                    <div className="pr-6">
                       <h2 className="text-xl font-bold text-gray-900">
                         {isEditing ? 'Edit Update' : 'Add New Update'}
                       </h2>
                       <button
                         onClick={() => {
+                          setIsModalOpen(false);
                           setSelectedUpdate(null);
                           setIsEditing(false);
                         }}
@@ -485,20 +508,21 @@ export default function UpdatesPage() {
                         </div>
                       </div>
 
-                      <div className="flex justify-end space-x-3">
+                      <div className="flex justify-end space-x-3 mt-6">
                         <button
                           type="button"
                           onClick={() => {
-                            setSelectedUpdate(null);
+                            setIsModalOpen(false);
                             setIsEditing(false);
+                            setSelectedUpdate(null);
                           }}
-                          className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
+                          className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
-                          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
                           {isEditing ? 'Update' : 'Create'} Update
                         </button>
