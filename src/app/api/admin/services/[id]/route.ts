@@ -23,12 +23,12 @@ async function checkFallback() {
 // PATCH /api/admin/services/[id] - Update a single service
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await checkFallback();
 
-    const id = params.id;
+    const { id } = await context.params;
     const { name, tagline, icon, href, subServices, order, price } = await request.json();
 
     if (!id) {
@@ -104,11 +104,11 @@ export async function PATCH(
 // DELETE /api/admin/services/[id] - Delete a single service
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await checkFallback();
-    const id = params.id;
+    const { id } = await context.params;
 
     if (!id) {
       return NextResponse.json({

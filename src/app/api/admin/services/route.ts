@@ -45,26 +45,24 @@ async function seedDefaultServices() {
   }
 }
 
+async function fetchServiceRows() {
+  const rows = useFallback
+    ? await fallbackQuery('SELECT * FROM services ORDER BY created_at DESC')
+    : await query('SELECT * FROM services ORDER BY created_at DESC');
+
+  return Array.isArray(rows) ? rows : [];
+}
+
 // GET /api/admin/services - Fetch all services and map to admin UI shape
 export async function GET() {
   try {
     await checkFallback();
 
-    const rows = useFallback
-      ? await fallbackQuery(
-          'SELECT * FROM services ORDER BY created_at DESC'
-        )
-      : await query(
-          'SELECT * FROM services ORDER BY created_at DESC'
-        );
-
-    let servicesRows = Array.isArray(rows) ? rows : [];
+    let servicesRows = await fetchServiceRows();
 
     if (servicesRows.length === 0) {
       await seedDefaultServices();
-      servicesRows = useFallback
-        ? await fallbackQuery('SELECT * FROM services ORDER BY created_at DESC')
-        : await query('SELECT * FROM services ORDER BY created_at DESC');
+      servicesRows = await fetchServiceRows();
     }
 
     const services = Array.isArray(servicesRows) ? servicesRows.map(mapRowToService) : [];

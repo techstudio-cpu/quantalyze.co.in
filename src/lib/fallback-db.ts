@@ -1,5 +1,5 @@
 import sqlite3 from 'sqlite3';
-import { open, Database, RunResult } from 'sqlite';
+import { open, Database } from 'sqlite';
 import path from 'path';
 import fs from 'fs';
 
@@ -146,7 +146,7 @@ export async function fallbackQuery(sql: string, params: any[] = []) {
 export async function fallbackRun(sql: string, params: any[] = []) {
   try {
     const database = await initFallbackDB();
-    const result: RunResult = await database.run(sql, params);
+    const result = await database.run(sql, params);
     return result;
   } catch (error) {
     console.error('SQLite run error:', error);
