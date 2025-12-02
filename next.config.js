@@ -61,8 +61,12 @@ const nextConfig = {
   // Power by header
   poweredByHeader: false,
   
-  // Trailing slash for better compatibility
-  trailingSlash: true,
+  // IMPORTANT: trailingSlash breaks API routes with POST requests (causes 308 redirect)
+  // Removed to fix admin login and other API functionality
+  trailingSlash: false,
+  
+  // Skip trailing slash redirect for API routes
+  skipTrailingSlashRedirect: true,
   
   // Next.js 15 experimental features
   experimental: {
