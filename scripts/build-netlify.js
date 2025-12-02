@@ -65,15 +65,35 @@ module.exports = nextConfig;
 `;
 fs.writeFileSync(originalConfig, netlifyConfig);
 
-// Step 3: Move API and admin folders temporarily
-console.log('3️⃣ Excluding API and admin routes...');
+// Step 3: Create stub route files instead of moving folders
+// This prevents "module not found" errors while still excluding dynamic routes
+console.log('3️⃣ Creating stub routes for static export...');
+
+// Backup and stub API folder
 if (fs.existsSync(apiDir)) {
   fs.renameSync(apiDir, apiBackup);
-  console.log('   ✓ Moved /api to backup');
+  fs.mkdirSync(apiDir, { recursive: true });
+  // Create a placeholder to prevent errors
+  fs.writeFileSync(path.join(apiDir, '.gitkeep'), '');
+  console.log('   ✓ Stubbed /api folder');
 }
+
+// Backup and stub admin folder  
 if (fs.existsSync(adminDir)) {
   fs.renameSync(adminDir, adminBackup);
-  console.log('   ✓ Moved /admin to backup');
+  fs.mkdirSync(adminDir, { recursive: true });
+  // Create minimal page that redirects to Railway
+  const stubPage = `'use client';
+import { useEffect } from 'react';
+export default function AdminRedirect() {
+  useEffect(() => {
+    window.location.href = '${RAILWAY_API}/admin';
+  }, []);
+  return <div>Redirecting to admin...</div>;
+}
+`;
+  fs.writeFileSync(path.join(adminDir, 'page.tsx'), stubPage);
+  console.log('   ✓ Stubbed /admin folder with redirect');
 }
 
 // Step 4: Build
