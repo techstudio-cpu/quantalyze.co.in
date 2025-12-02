@@ -15,7 +15,9 @@
     "analyze": "ANALYZE=true next build",
     "railway:build": "npm install && npm run build",
     "railway:start": "npm start",
-    "deploy:railway": "npm run build && git add . && git commit -m 'Deploy to Railway' && git push"
+    "deploy:railway": "npm run build && git add . && git commit -m 'Deploy to Railway' && git push",
+    "build:static": "node scripts/build-static.js",
+    "build:serverbyt": "set RAILWAY_API_URL=https://quantalyze-api.up.railway.app&& node scripts/build-static.js"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

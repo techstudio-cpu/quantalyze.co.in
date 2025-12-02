@@ -64,3 +64,8 @@ next-env.d.ts
 
 # Railway
 .railway
+
+# Static build output (for ServerByt)
+/static-deploy/
+/out/
+next.config.backup.js
