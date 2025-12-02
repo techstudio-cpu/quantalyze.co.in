@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { fallbackQuery } from './fallback-db';
+import { query, run, initDatabase, getDatabaseType } from './unified-db';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_EXPIRES_IN = '24h';
@@ -19,21 +19,12 @@ interface AdminUser {
 // Initialize admin user if not exists
 export async function initializeAdminUser() {
   try {
-    // Check if admin table exists
-    await fallbackQuery(`
-      CREATE TABLE IF NOT EXISTS admin_users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        role TEXT DEFAULT 'admin',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        last_login DATETIME
-      )
-    `);
+    // Initialize database tables based on environment
+    await initDatabase();
+    console.log(`[Auth] Using ${getDatabaseType()} database`);
 
     // Check if admin user exists
-    const existingAdmin = await fallbackQuery(
+    const existingAdmin = await query(
       'SELECT id FROM admin_users WHERE username = ?',
       ['Admin']
     );
@@ -42,20 +33,23 @@ export async function initializeAdminUser() {
       // Create default admin user
       const hashedPassword = await bcrypt.hash('Admin@123', 10);
       
-      await fallbackQuery(
+      await run(
         'INSERT INTO admin_users (username, email, password, role) VALUES (?, ?, ?, ?)',
         ['Admin', 'admin@quantalyze.co.in', hashedPassword, 'admin']
       );
+      console.log('[Auth] Default admin user created');
     }
   } catch (error) {
-    // Silent error handling
+    console.error('[Auth] Failed to initialize admin user:', error);
   }
 }
 
 // Authenticate admin user
 export async function authenticateAdmin(username: string, password: string): Promise<{ success: boolean; user?: AdminUser; error?: string }> {
   try {
-    const users = await fallbackQuery(
+    console.log(`[Auth] Attempting authentication for user: ${username}`);
+    
+    const users = await query(
       'SELECT * FROM admin_users WHERE username = ?',
       [username]
     );
@@ -72,15 +66,16 @@ export async function authenticateAdmin(username: string, password: string): Pro
     }
 
     // Update last login
-    await fallbackQuery(
+    await run(
       'UPDATE admin_users SET last_login = CURRENT_TIMESTAMP WHERE id = ?',
       [user.id]
     );
 
+    console.log(`[Auth] User ${username} authenticated successfully`);
     return { success: true, user };
   } catch (error) {
-    console.error('Authentication error:', error);
-    return { success: false, error: 'Authentication failed' };
+    console.error('[Auth] Authentication error:', error);
+    return { success: false, error: 'Authentication failed. Please check server logs.' };
   }
 }
 
@@ -112,7 +107,7 @@ export function verifyToken(token: string): { valid: boolean; user?: any; error?
 export async function changeAdminPassword(userId: number, currentPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> {
   try {
     // Get current user
-    const users = await fallbackQuery(
+    const users = await query(
       'SELECT password FROM admin_users WHERE id = ?',
       [userId]
     );
@@ -132,7 +127,7 @@ export async function changeAdminPassword(userId: number, currentPassword: strin
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
     // Update password
-    await fallbackQuery(
+    await run(
       'UPDATE admin_users SET password = ? WHERE id = ?',
       [hashedNewPassword, userId]
     );

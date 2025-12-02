@@ -29,11 +29,23 @@ export default function AdminLogin() {
     return null;
   };
 
-  // Helper function to set cookie
+  // Helper function to set cookie (production-safe with Secure and SameSite)
   const setCookie = (name: string, value: string, days: number) => {
     const expires = new Date();
     expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+    
+    // Check if we're on HTTPS (production) or HTTP (localhost)
+    const isSecure = window.location.protocol === 'https:';
+    
+    // Build cookie string with proper attributes for production
+    let cookieString = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+    
+    // Add Secure flag only for HTTPS connections
+    if (isSecure) {
+      cookieString += ';Secure';
+    }
+    
+    document.cookie = cookieString;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

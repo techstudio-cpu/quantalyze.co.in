@@ -47,3 +47,20 @@ next-env.d.ts
 *.log
 *.bak
 *~
+
+/src/generated/prisma
+
+# SQLite database (development only)
+/data/*.db
+*.sqlite
+*.sqlite3
+
+# Python backend
+/python-backend/venv/
+/python-backend/__pycache__/
+/python-backend/app/__pycache__/
+/python-backend/*.pyc
+/python-backend/.env
+
+# Railway
+.railway
