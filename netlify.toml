@@ -1,0 +1,60 @@
+# Netlify Configuration for Quantalyze Static Frontend
+# Backend API runs on Railway: https://quantalyze.up.railway.app
+
+[build]
+  # Build command - generates static site
+  command = "npm run build:netlify"
+  
+  # Output directory for static files
+  publish = "out"
+  
+  # Node version
+  environment = { NODE_VERSION = "20" }
+
+[build.environment]
+  # Railway API URL for backend calls
+  NEXT_PUBLIC_API_URL = "https://quantalyze.up.railway.app"
+  NEXT_PUBLIC_SITE_URL = "https://quantalyze.co.in"
+
+# Redirects - Send /admin and /api to Railway
+[[redirects]]
+  from = "/admin/*"
+  to = "https://quantalyze.up.railway.app/admin/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://quantalyze.up.railway.app/api/:splat"
+  status = 200
+  force = true
+
+# SPA fallback for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Role = ["admin"]}
+
+# Headers for security and caching
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+# Functions (if needed in future)
+[functions]
+  directory = "netlify/functions"
