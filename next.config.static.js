@@ -2,8 +2,9 @@
 
 // Static export configuration for ServerByt deployment
 // This generates pure HTML/CSS/JS files that work on any static hosting
+// API routes and admin pages are excluded (they stay on Railway)
 
-const RAILWAY_API_URL = process.env.RAILWAY_API_URL || 'https://quantalyze-api.up.railway.app';
+const RAILWAY_API_URL = process.env.RAILWAY_API_URL || 'https://quantalyze.up.railway.app';
 
 const staticConfig = {
   // Enable static HTML export
@@ -37,6 +38,9 @@ const staticConfig = {
   
   // Power by header
   poweredByHeader: false,
+  
+  // Note: API and admin routes are excluded by the build script
+  // (temporarily moved before build, restored after)
 };
 
 module.exports = staticConfig;
