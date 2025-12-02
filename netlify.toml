@@ -7,12 +7,9 @@
   
   # Output directory for static files
   publish = "out"
-  
-  # Node version
-  environment = { NODE_VERSION = "20" }
 
 [build.environment]
-  # Railway API URL for backend calls
+  NODE_VERSION = "20"
   NEXT_PUBLIC_API_URL = "https://quantalyze.up.railway.app"
   NEXT_PUBLIC_SITE_URL = "https://quantalyze.co.in"
 
