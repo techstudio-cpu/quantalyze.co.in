@@ -5,20 +5,9 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
-    "build:production": "NODE_ENV=production next build",
-    "start:production": "NODE_ENV=production next start",
-    "export": "next build",
-    "postbuild": "next-sitemap",
-    "type-check": "tsc --noEmit",
-    "analyze": "ANALYZE=true next build",
-    "railway:build": "npm install && npm run build",
-    "railway:start": "npm start",
-    "deploy:railway": "npm run build && git add . && git commit -m 'Deploy to Railway' && git push",
-    "build:static": "node scripts/build-static.js",
-    "build:serverbyt": "set RAILWAY_API_URL=https://quantalyze.up.railway.app&& node scripts/build-static.js",
-    "build:netlify": "node scripts/build-netlify.js"
+    "postbuild": "next-sitemap"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
