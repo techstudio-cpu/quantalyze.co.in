@@ -1,0 +1,126 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { email, name, preferences } = body;
+
+    if (!email || !email.includes('@')) {
+      return NextResponse.json(
+        { success: false, message: 'Valid email is required' },
+        { status: 400 }
+      );
+    }
+
+    const checkQuery = 'SELECT id, status FROM newsletter_subscribers WHERE email = ?';
+    const existingSubscribers = await query(checkQuery, [email]) as any[];
+
+    if (existingSubscribers.length > 0) {
+      const subscriber = existingSubscribers[0];
+      
+      if (subscriber.status === 'active') {
+        return NextResponse.json({
+          success: false,
+          alreadySubscribed: true,
+          message: 'This email is already subscribed to our newsletter!'
+        });
+      } else {
+        const updateQuery = `
+          UPDATE newsletter_subscribers 
+          SET status = 'active', 
+              name = ?, 
+              preferences = ?,
+              updated_at = NOW()
+          WHERE email = ?
+        `;
+        await query(updateQuery, [
+          name || null,
+          preferences ? JSON.stringify(preferences) : null,
+          email
+        ]);
+
+        return NextResponse.json({
+          success: true,
+          message: 'Welcome back! Your subscription has been reactivated.'
+        });
+      }
+    }
+
+    const insertQuery = `
+      INSERT INTO newsletter_subscribers (email, name, preferences, status, created_at, updated_at)
+      VALUES (?, ?, ?, 'active', NOW(), NOW())
+    `;
+    
+    await query(insertQuery, [
+      email,
+      name || null,
+      preferences ? JSON.stringify(preferences) : null
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Successfully subscribed to our newsletter!'
+    });
+
+  } catch (error: any) {
+    console.error('Newsletter subscription error:', error);
+    
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Failed to subscribe. Please try again later.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const action = searchParams.get('action');
+    const email = searchParams.get('email');
+
+    if (action === 'unsubscribe' && email) {
+      const updateQuery = `
+        UPDATE newsletter_subscribers 
+        SET status = 'unsubscribed', updated_at = NOW()
+        WHERE email = ?
+      `;
+      await query(updateQuery, [email]);
+
+      return NextResponse.json({
+        success: true,
+        message: 'Successfully unsubscribed from newsletter'
+      });
+    }
+
+    const statsQuery = `
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
+        SUM(CASE WHEN status = 'unsubscribed' THEN 1 ELSE 0 END) as unsubscribed
+      FROM newsletter_subscribers
+    `;
+    const stats = await query(statsQuery) as any[];
+
+    return NextResponse.json({
+      success: true,
+      stats: stats[0]
+    });
+
+  } catch (error: any) {
+    console.error('Newsletter GET error:', error);
+    
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Failed to process request',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
+      { status: 500 }
+    );
+  }
+}

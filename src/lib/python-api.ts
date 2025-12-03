@@ -71,8 +71,17 @@ export interface TimeSeriesData {
 }
 
 export const analyticsAPI = {
-  getDashboard: (period: string = '30d'): Promise<AnalyticsDashboard> =>
-    apiRequest(`/api/analytics/dashboard?period=${period}`),
+  getDashboard: (days: number = 30) =>
+    apiRequest(`/analytics/dashboard?days=${days}`),
+
+  getTrends: (days: number = 90) =>
+    apiRequest(`/analytics/trends?days=${days}`),
+
+  getConversion: () =>
+    apiRequest('/analytics/conversion'),
+
+  getPopularServices: () =>
+    apiRequest('/analytics/popular-services'),
 
   getInquiryBreakdown: () =>
     apiRequest('/api/analytics/inquiries/breakdown'),
@@ -242,7 +251,7 @@ export const exportAPI = {
 
 export const healthAPI = {
   check: () =>
-    apiRequest<{ status: string; version: string; service: string }>('/api/health'),
+    apiRequest<{ status: string; database?: string }>('/health'),
 };
 
 // ============= Utility Functions =============

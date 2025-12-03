@@ -10,13 +10,6 @@ export default function Newsletter() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // On production/static builds (like Serverbyt), disable live newsletter submission
-    if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-      alert('Newsletter subscription is currently disabled on the live static site. Please contact us via the contact form instead.');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
