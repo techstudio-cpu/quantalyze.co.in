@@ -1,40 +1,38 @@
 import mysql from 'mysql2/promise';
 
-const connectionUrl = process.env.MYSQL_URL || process.env.MYSQL_PUBLIC_URL;
+// Lazy-initialized connection pool to prevent startup crashes
+let pool: mysql.Pool | null = null;
 
-// Database connection configuration (falls back to individual fields for local dev)
-const dbConfig = connectionUrl
-  ? connectionUrl
-  : {
-      host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || process.env.MYSQLPORT || '3306'),
-      user: process.env.DB_USER || process.env.MYSQLUSER || 'root',
-      password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
-      database: process.env.DB_NAME || process.env.MYSQLDATABASE || 'quantalyze_db',
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-      enableKeepAlive: true,
-      keepAliveInitialDelay: 0,
-    };
-
-// Create connection pool (allows either connection string or config object)
-const pool = mysql.createPool(dbConfig as any);
+function getPool(): mysql.Pool {
+  if (!pool) {
+    const connectionUrl = process.env.MYSQL_URL || process.env.MYSQL_PUBLIC_URL;
+    
+    const dbConfig = connectionUrl
+      ? connectionUrl
+      : {
+          host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
+          port: parseInt(process.env.DB_PORT || process.env.MYSQLPORT || '3306'),
+          user: process.env.DB_USER || process.env.MYSQLUSER || 'root',
+          password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
+          database: process.env.DB_NAME || process.env.MYSQLDATABASE || 'quantalyze_db',
+          waitForConnections: true,
+          connectionLimit: 10,
+          queueLimit: 0,
+          enableKeepAlive: true,
+          keepAliveInitialDelay: 0,
+        };
+    
+    pool = mysql.createPool(dbConfig as any);
+  }
+  return pool;
+}
 
 // Test database connection
 export async function testConnection() {
   try {
-    const configInfo = typeof dbConfig === 'string'
-      ? { connectionString: 'MYSQL_URL (hidden)' }
-      : {
-          host: dbConfig.host,
-          port: dbConfig.port,
-          user: dbConfig.user,
-          database: dbConfig.database
-        };
-    console.log('Attempting database connection with config:', configInfo);
-    
-    const connection = await pool.getConnection();
+    console.log('Attempting database connection...');
+    const dbPool = getPool();
+    const connection = await dbPool.getConnection();
     await connection.ping();
     connection.release();
     console.log('✅ Database connected successfully');
@@ -54,7 +52,8 @@ export async function testConnection() {
 // Generic query function
 export async function query(sql: string, params?: any[]) {
   try {
-    const [rows] = await pool.execute(sql, params);
+    const dbPool = getPool();
+    const [rows] = await dbPool.execute(sql, params);
     return rows;
   } catch (error) {
     console.error('Database query error:', error);
@@ -64,7 +63,8 @@ export async function query(sql: string, params?: any[]) {
 
 // Transaction helper
 export async function transaction(callback: (connection: mysql.PoolConnection) => Promise<any>) {
-  const connection = await pool.getConnection();
+  const dbPool = getPool();
+  const connection = await dbPool.getConnection();
   try {
     await connection.beginTransaction();
     const result = await callback(connection);
@@ -80,8 +80,13 @@ export async function transaction(callback: (connection: mysql.PoolConnection) =
 
 // Close connection pool (for graceful shutdown)
 export async function closePool() {
-  await pool.end();
-  console.log('Database connection pool closed');
+  if (pool) {
+    await pool.end();
+    pool = null;
+    console.log('Database connection pool closed');
+  }
 }
 
-export default pool;
+// Export getPool for direct access if needed
+export { getPool };
+export default getPool;
