@@ -1,32 +1,38 @@
 import mysql from 'mysql2/promise';
 
-// Database connection configuration
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '3306'),
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'quantalyze_db',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 0,
-  // Remove SSL for now to test basic connection
-};
+const connectionUrl = process.env.MYSQL_URL || process.env.MYSQL_PUBLIC_URL;
 
-// Create connection pool
-const pool = mysql.createPool(dbConfig);
+// Database connection configuration (falls back to individual fields for local dev)
+const dbConfig = connectionUrl
+  ? connectionUrl
+  : {
+      host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || process.env.MYSQLPORT || '3306'),
+      user: process.env.DB_USER || process.env.MYSQLUSER || 'root',
+      password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
+      database: process.env.DB_NAME || process.env.MYSQLDATABASE || 'quantalyze_db',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 0,
+    };
+
+// Create connection pool (allows either connection string or config object)
+const pool = mysql.createPool(dbConfig as any);
 
 // Test database connection
 export async function testConnection() {
   try {
-    console.log('Attempting database connection with config:', {
-      host: dbConfig.host,
-      port: dbConfig.port,
-      user: dbConfig.user,
-      database: dbConfig.database
-    });
+    const configInfo = typeof dbConfig === 'string'
+      ? { connectionString: 'MYSQL_URL (hidden)' }
+      : {
+          host: dbConfig.host,
+          port: dbConfig.port,
+          user: dbConfig.user,
+          database: dbConfig.database
+        };
+    console.log('Attempting database connection with config:', configInfo);
     
     const connection = await pool.getConnection();
     await connection.ping();
