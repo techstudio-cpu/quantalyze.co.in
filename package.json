@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
-    "postbuild": "next-sitemap"
+    "postbuild": "next-sitemap",
+    "db:init": "node scripts/db-init.js"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
