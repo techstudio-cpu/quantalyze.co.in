@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Service {
+  id          String      @id @default(cuid())
+  name        String
+  tagline     String
+  icon        String?     // Store icon component name as string
+  href        String
+  points      String[]    // Stored as JSON array in database
+  price       String?     // Storing as string to handle currency formatting
+  subServices SubService[]
+  isActive    Boolean     @default(true)
+  order       Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model SubService {
+  id          String   @id @default(cuid())
+  name        String
+  href        String
+  description String
+  service     Service  @relation(fields: [serviceId], references: [id])
+  serviceId   String
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([serviceId])
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  name        String
+  tagline     String
+  description String?
+  icon        String?     // Store icon component name as string
+  href        String
+  points      String[]    // Stored as JSON array in database
+  price       String?     // Storing as string to handle currency formatting
+  duration    String?     // e.g., "6 weeks", "3 months"
+  isActive    Boolean     @default(true)
+  isFeatured  Boolean     @default(false)
+  order       Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+// Add this model if you need to track course enrollments
+model CourseEnrollment {
+  id        String   @id @default(cuid())
+  course    Course   @relation(fields: [courseId], references: [id])
+  courseId  String
+  userId    String   // Reference to your user model
+  status    String   // e.g., "enrolled", "completed", "cancelled"
+  progress  Int      @default(0) // 0-100 percentage
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courseId])
+  @@index([userId])
+}

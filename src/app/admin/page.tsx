@@ -283,6 +283,30 @@ export default function AdminPage() {
           </div>
         </div>
 
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Content Management</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link
+              href="/admin/services"
+              className="bg-indigo-500 text-white px-6 py-3 rounded-lg hover:bg-indigo-600 transition-colors text-center block"
+            >
+              Manage Services
+            </Link>
+            <Link
+              href="/admin/courses"
+              className="bg-pink-500 text-white px-6 py-3 rounded-lg hover:bg-pink-600 transition-colors text-center block"
+            >
+              Manage Courses
+            </Link>
+            <Link
+              href="/admin/content"
+              className="bg-teal-500 text-white px-6 py-3 rounded-lg hover:bg-teal-600 transition-colors text-center block"
+            >
+              Manage Content
+            </Link>
+          </div>
+        </div>
+
         <div className="mt-8 bg-yellow-50 border border-yellow-200 p-6 rounded-lg">
           <h3 className="text-lg font-semibold text-yellow-900 mb-2">🚀 Admin Panel Features</h3>
           <ul className="list-disc list-inside text-yellow-800 space-y-1">

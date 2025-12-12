@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ComponentType } from "react";
 import Link from "next/link";
-import { FaBullhorn, FaCode, FaRobot, FaChevronDown } from "react-icons/fa";
+import { FaBullhorn, FaCode, FaRobot, FaChevronDown, FaChartLine, FaGraduationCap, FaGlobe, FaLightbulb, FaShoppingCart, FaEnvelope, FaSearch, FaUserFriends, FaVideo, FaNewspaper, FaCube } from "react-icons/fa";
 
 type Service = {
   id: string;
@@ -12,213 +12,403 @@ type Service = {
   href: string;
   points: string[];
   price?: string;
+  subServices?: { name: string; href: string; description: string }[];
 };
 
 const STATIC_SERVICES: Service[] = [
   {
+    id: "automation-workflow",
+    name: "Automation Workflow / AI Agents",
+    tagline: "Transform your business with intelligent automation and AI-powered workflows",
+    icon: FaRobot,
+    href: "/services/ai-automation",
+    points: [
+      "Custom AI agent development",
+      "Workflow automation solutions",
+      "Process optimization with AI",
+      "Intelligent customer service bots",
+      "Data-driven decision making",
+    ],
+    price: "45000",
+  },
+  {
     id: "digital-marketing",
     name: "Digital Marketing",
-    tagline: "Grow your online presence with data‑driven campaigns",
+    tagline: "Comprehensive digital marketing strategies to grow your brand and reach",
     icon: FaBullhorn,
-    href: "/services/paid-advertising",
+    href: "/services/digital-marketing",
     points: [
-      "Search & social ad campaigns",
-      "SEO & content strategy",
-      "Analytics & conversion tracking",
-      "Performance reporting",
+      "Multi-channel marketing campaigns",
+      "Data-driven strategy development",
+      "ROI-focused marketing solutions",
+      "Brand awareness and growth",
+    ],
+    price: "35000",
+    subServices: [
+      { name: "Social Media", href: "/services/social-media-marketing", description: "Strategic social media management and campaigns" },
+      { name: "Content Creation", href: "/services/content-writing", description: "Engaging content that converts and resonates" },
+      { name: "Influencer Marketing", href: "/services/influencer-marketing", description: "Connect with your audience through influencers" },
+      { name: "SEO Optimization", href: "/services/seo", description: "Improve your search rankings and organic traffic" },
+      { name: "Community Management", href: "/services/community-management", description: "Build and nurture your online community" },
+      { name: "Email Marketing", href: "/services/email-marketing", description: "Targeted email campaigns that drive results" },
+      { name: "E-Commerce", href: "/services/ecommerce", description: "Online store setup and optimization" },
+    ],
+  },
+  {
+    id: "web-app-development",
+    name: "Web / App Development",
+    tagline: "Custom web and mobile applications built for performance and scalability",
+    icon: FaCode,
+    href: "/services/website-development",
+    points: [
+      "Custom web applications",
+      "Mobile app development",
+      "E-commerce platforms",
+      "API development and integration",
+      "Progressive Web Apps (PWA)",
+    ],
+    price: "55000",
+  },
+  {
+    id: "branding",
+    name: "Branding",
+    tagline: "Create a powerful brand identity that stands out in the market",
+    icon: FaLightbulb,
+    href: "/services/branding",
+    points: [
+      "Brand strategy and positioning",
+      "Visual identity design",
+      "Logo and brand guidelines",
+      "Brand messaging and tone",
+      "Market research and analysis",
+    ],
+    price: "40000",
+  },
+  {
+    id: "lead-generation",
+    name: "Lead Generation",
+    tagline: "Generate high-quality leads that convert into loyal customers",
+    icon: FaChartLine,
+    href: "/services/lead-generation",
+    points: [
+      "Targeted lead generation campaigns",
+      "Landing page optimization",
+      "Sales funnel development",
+      "Lead nurturing strategies",
+      "Conversion rate optimization",
+    ],
+    price: "30000",
+  },
+  {
+    id: "geo-marketing",
+    name: "GEO Marketing",
+    tagline: "Location-based marketing strategies to reach local customers effectively",
+    icon: FaGlobe,
+    href: "/services/geo-marketing",
+    points: [
+      "Local SEO optimization",
+      "Geotargeted advertising",
+      "Location-based campaigns",
+      "Regional market analysis",
+      "Local business listings",
+    ],
+    price: "25000",
+  },
+];
+
+const COURSES = [
+  {
+    id: "digital-marketing-course",
+    name: "Digital Marketing Course",
+    tagline: "Master the art of digital marketing from basics to advanced strategies",
+    icon: FaGraduationCap,
+    href: "/courses/digital-marketing",
+    points: [
+      "Social media marketing mastery",
+      "SEO and content marketing",
+      "Paid advertising campaigns",
+      "Analytics and reporting",
+      "Brand strategy development",
+    ],
+    price: "15000",
+  },
+  {
+    id: "ai-automation-workflows",
+    name: "AI Automation & Workflows",
+    tagline: "Learn to build intelligent automation systems and AI-powered workflows",
+    icon: FaRobot,
+    href: "/courses/ai-automation",
+    points: [
+      "AI agent development",
+      "Workflow automation tools",
+      "Process optimization techniques",
+      "Integration with existing systems",
+      "Real-world implementation",
+    ],
+    price: "20000",
+  },
+  {
+    id: "ai-journalist-programme",
+    name: "AI Journalist Programme",
+    tagline: "Become an AI-powered content creator and digital journalist",
+    icon: FaNewspaper,
+    href: "/courses/ai-journalist",
+    points: [
+      "AI-powered content creation",
+      "Automated journalism techniques",
+      "Data storytelling",
+      "Ethical AI in media",
+      "Content strategy with AI",
+    ],
+    price: "18000",
+  },
+  {
+    id: "product-building-ai",
+    name: "Product Building with AI",
+    tagline: "Learn to develop innovative products using artificial intelligence",
+    icon: FaCube,
+    href: "/courses/product-building",
+    points: [
+      "AI product design principles",
+      "Machine learning integration",
+      "Product development lifecycle",
+      "User experience with AI",
+      "Market validation strategies",
     ],
     price: "25000",
   },
   {
-    id: "web-development",
-    name: "Website Development",
-    tagline: "Fast, modern and mobile‑first business websites",
-    icon: FaCode,
-    href: "/services/website-development",
+    id: "ads-movies-creation-ai",
+    name: "Ads and Movies Creation with AI",
+    tagline: "Master AI-powered video creation for advertisements and entertainment",
+    icon: FaVideo,
+    href: "/courses/ai-video-creation",
     points: [
-      "Custom landing pages",
-      "E‑commerce & booking flows",
-      "Speed & Core Web Vitals optimisation",
-      "Ongoing maintenance",
+      "AI video generation tools",
+      "Script writing with AI",
+      "Visual effects and editing",
+      "Advertisement creation",
+      "Storytelling techniques",
     ],
-    price: "35000",
+    price: "22000",
   },
   {
-    id: "ai-automation",
-    name: "AI Automation",
-    tagline: "Automate workflows and customer journeys with AI",
-    icon: FaRobot,
-    href: "/services/ai-automation",
+    id: "foundation-of-ai",
+    name: "Foundation of AI",
+    tagline: "Build a strong foundation in artificial intelligence and machine learning",
+    icon: FaLightbulb,
+    href: "/courses/ai-foundation",
     points: [
-      "Chatbots & lead qualification",
-      "CRM & marketing automation",
-      "Reporting dashboards",
-      "Custom AI workflows",
+      "AI fundamentals and concepts",
+      "Machine learning basics",
+      "Neural networks and deep learning",
+      "Practical AI applications",
+      "Ethics in AI development",
     ],
-    price: "29999",
+    price: "12000",
   },
 ];
 
-function mapApiIcon(icon?: string | null, category?: string | null): ComponentType<{ className?: string }> {
-  const key = (icon || category || "").toLowerCase();
-
-  if (key.includes("dev") || key.includes("web") || key.includes("code")) {
-    return FaCode;
-  }
-
-  if (key.includes("ai") || key.includes("auto") || key.includes("bot")) {
-    return FaRobot;
-  }
-
-  return FaBullhorn;
-}
-
 export default function Services() {
   const [services, setServices] = useState<Service[]>(STATIC_SERVICES);
-  const [activeIndex, setActiveIndex] = useState<number | null>(0);
+  const [courses, setCourses] = useState(COURSES);
+  const [loading, setLoading] = useState(false);
+  const [expandedService, setExpandedService] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadServices() {
+    const fetchServices = async () => {
       try {
-        const res = await fetch("/api/services", { cache: "no-store" });
-        if (!res.ok) return;
-
-        const data = await res.json();
-        if (!data?.success || !Array.isArray(data.services) || data.services.length === 0) {
-          return;
+        setLoading(true);
+        const response = await fetch('/api/services');
+        const data = await response.json();
+        if (data.success && data.services?.length > 0) {
+          setServices(data.services);
         }
-
-        if (cancelled) return;
-
-        const mapped: Service[] = data.services.map((s: any, index: number) => ({
-          id: String(s.id ?? index),
-          name: s.title ?? s.name ?? "Service",
-          tagline: s.description ?? "Comprehensive digital solution",
-          icon: mapApiIcon(s.icon, s.category),
-          href: s.slug ? `/services/${s.slug}` : "/services",
-          points: [s.description].filter(Boolean),
-          price: s.price ? String(s.price) : undefined,
-        }));
-
-        setServices(mapped);
       } catch (error) {
-        console.error("Failed to load services", error);
+        console.error('Failed to fetch services:', error);
+      } finally {
+        setLoading(false);
       }
-    }
-
-    loadServices();
-    return () => {
-      cancelled = true;
     };
+
+    fetchServices();
   }, []);
 
-  const handleToggle = (index: number) => {
-    setActiveIndex((prev) => (prev === index ? null : index));
+  const toggleExpanded = (serviceId: string) => {
+    setExpandedService(expandedService === serviceId ? null : serviceId);
   };
 
   return (
-    <section id="services" className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-base text-yellow-600 font-semibold tracking-wide uppercase mb-3">
-            Our Services / Solutions
-          </h2>
-          <h3 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-            We Deliver Service According To Your Needs
-          </h3>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-            Comprehensive digital solutions to help your brand succeed online.
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Services Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Services</h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Comprehensive solutions to transform your business with cutting-edge technology and strategic expertise
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service, index) => {
-            const Icon = service.icon;
-            const isActive = activeIndex === index;
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading services...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {services.map((service) => {
+                const Icon = service.icon;
+                const hasSubServices = service.subServices && service.subServices.length > 0;
+                const isExpanded = expandedService === service.id;
 
-            return (
-              <div
-                key={service.id}
-                className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-yellow-400/10 bg-white/80 p-[1px] shadow-[0_24px_46px_-32px_rgba(17,24,39,0.55)] transition-all duration-500 hover:-translate-y-3 hover:border-yellow-400/40 hover:shadow-[0_38px_70px_-30px_rgba(17,24,39,0.55)]"
-              >
-                <div className="relative z-10 flex h-full flex-col rounded-[24px] border border-white/60 bg-white/95 p-7 backdrop-blur-xl">
-                  <button
-                    type="button"
-                    onClick={() => handleToggle(index)}
-                    className="flex w-full items-start gap-4 text-left focus:outline-none"
-                    aria-expanded={isActive}
-                  >
-                    <div className="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-yellow-200 via-yellow-400 to-yellow-500 text-white shadow-[0_16px_30px_-18px_rgba(234,179,8,0.75)]">
-                      <Icon className="h-6 w-6" />
-                    </div>
-
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-start justify-between gap-3">
-                        <h4 className="text-xl font-semibold text-gray-900">
-                          {service.name}
-                        </h4>
-                        <FaChevronDown
-                          className={`mt-1 h-5 w-5 flex-shrink-0 transition-transform duration-300 ${
-                            isActive ? "rotate-180 text-yellow-600" : "text-gray-400"
-                          }`}
-                          aria-hidden="true"
-                        />
-                      </div>
-                      <p className="text-gray-600 text-sm leading-relaxed">
-                        {service.tagline}
-                      </p>
-                      {service.price && (
-                        <p className="text-sm font-semibold text-green-600">
-                          Starting at ₹{service.price}
-                        </p>
-                      )}
-                    </div>
-                  </button>
-
+                return (
                   <div
-                    className={`grid transition-all duration-300 ease-out ${
-                      isActive ? "mt-6 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                    }`}
+                    key={service.id}
+                    className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
                   >
-                    <div className="overflow-hidden">
-                      <ul className="space-y-3 text-sm text-gray-700">
-                        {service.points.map((item) => (
-                          <li key={item} className="flex items-start gap-3">
-                            <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-yellow-400" />
-                            <span>{item}</span>
+                    <div className="p-6">
+                      <div className="flex items-center mb-4">
+                        <Icon className="h-8 w-8 text-yellow-500 mr-3" />
+                        <h3 className="text-xl font-bold text-gray-900">{service.name}</h3>
+                      </div>
+                      
+                      <p className="text-gray-600 mb-4">{service.tagline}</p>
+                      
+                      <ul className="space-y-2 mb-6">
+                        {service.points.slice(0, isExpanded ? undefined : 3).map((point, index) => (
+                          <li key={index} className="flex items-start">
+                            <div className="h-2 w-2 bg-yellow-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                            <span className="text-gray-700 text-sm">{point}</span>
                           </li>
                         ))}
                       </ul>
 
+                      {hasSubServices && isExpanded && (
+                        <div className="mb-6 space-y-2">
+                          <h4 className="font-semibold text-gray-900 mb-2">Sub-Services:</h4>
+                          {service.subServices!.map((subService, index) => (
+                            <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                              <Link
+                                href={subService.href}
+                                className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                              >
+                                {subService.name}
+                              </Link>
+                              <p className="text-gray-600 text-xs mt-1">{subService.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        {service.price && (
+                          <span className="text-2xl font-bold text-gray-900">
+                            ₹{parseInt(service.price).toLocaleString()}
+                          </span>
+                        )}
+                        
+                        <div className="flex gap-2">
+                          {hasSubServices && (
+                            <button
+                              onClick={() => toggleExpanded(service.id)}
+                              className="text-yellow-600 hover:text-yellow-700 p-2"
+                            >
+                              <FaChevronDown className={`transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                            </button>
+                          )}
+                          <Link
+                            href={service.href}
+                            className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500 transition-colors text-sm font-medium"
+                          >
+                            Learn More
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Courses Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Courses</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Upskill yourself with our comprehensive courses designed by industry experts
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {courses.map((course) => {
+              const Icon = course.icon;
+              
+              return (
+                <div
+                  key={course.id}
+                  className="bg-gray-50 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+                >
+                  <div className="p-6">
+                    <div className="flex items-center mb-4">
+                      <Icon className="h-8 w-8 text-yellow-500 mr-3" />
+                      <h3 className="text-xl font-bold text-gray-900">{course.name}</h3>
+                    </div>
+                    
+                    <p className="text-gray-600 mb-4">{course.tagline}</p>
+                    
+                    <ul className="space-y-2 mb-6">
+                      {course.points.slice(0, 3).map((point, index) => (
+                        <li key={index} className="flex items-start">
+                          <div className="h-2 w-2 bg-yellow-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                          <span className="text-gray-700 text-sm">{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="flex items-center justify-between">
+                      {course.price && (
+                        <span className="text-2xl font-bold text-gray-900">
+                          ₹{parseInt(course.price).toLocaleString()}
+                        </span>
+                      )}
+                      
                       <Link
-                        href={service.href}
-                        className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-yellow-700 hover:text-yellow-800"
+                        href={course.href}
+                        className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500 transition-colors text-sm font-medium"
                       >
-                        Explore Service
-                        <span aria-hidden="true">→</span>
+                        Enroll Now
                       </Link>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
+      </section>
 
-        <div className="text-center mt-16">
-          <p className="text-lg text-gray-700 mb-6">
-            Ready to elevate your digital presence?
+      {/* CTA Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-900">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">
+            Ready to Transform Your Business?
+          </h2>
+          <p className="text-xl text-gray-300 mb-8">
+            Get in touch with us to discuss how our services and courses can help you achieve your goals
           </p>
           <Link
             href="/contact"
-            className="inline-block px-8 py-4 bg-yellow-400 text-black rounded-full font-bold text-lg shadow-xl hover:bg-yellow-500 hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+            className="bg-yellow-400 text-black px-8 py-3 rounded-lg hover:bg-yellow-500 transition-colors text-lg font-medium inline-block"
           >
-            Let&apos;s Work Together
+            Get Started Today
           </Link>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }
