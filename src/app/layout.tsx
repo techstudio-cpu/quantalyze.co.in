@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     description: "Build magnetic digital experiences powered by AI strategy",
     type: "website",
     locale: "en_US",
-    url: "https://quantalyze.co.in",
+    url: "https://quantalyze.up.railway.app",
   },
   twitter: {
     card: "summary_large_image",

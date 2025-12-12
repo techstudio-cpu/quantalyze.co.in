@@ -3,7 +3,7 @@
  * Provides integration with the advanced Python backend features
  */
 
-const PYTHON_API_URL = process.env.NEXT_PUBLIC_PYTHON_API_URL || 'http://localhost:8000';
+const PYTHON_API_URL = process.env.PYTHON_API_URL || process.env.NEXT_PUBLIC_PYTHON_API_URL || 'http://localhost:8000';
 
 // Get auth token from localStorage or cookies
 function getAuthToken(): string | null {
