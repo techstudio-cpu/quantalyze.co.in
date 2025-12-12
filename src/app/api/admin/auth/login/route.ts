@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 const ADMIN_CREDENTIALS = {
-  username: process.env.ADMIN_USERNAME || 'admin',
+  username: process.env.ADMIN_USERNAME || 'Admin',
   passwordHash: process.env.ADMIN_PASSWORD_HASH || '$2b$10$eHRYiS4NY2616oJv8TB9EO2klAfsf4W7OaXm2HSIFLK6vlN0gOy2O'
 };
 
