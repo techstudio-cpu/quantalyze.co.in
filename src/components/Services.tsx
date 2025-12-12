@@ -38,13 +38,72 @@ export default function Services() {
 
     async function loadServices() {
       try {
-        const res = await fetch("/api/admin/services", { cache: "no-store" });
+        const res = await fetch("/api/services", { cache: "no-store" });
         const data = await res.json();
-        if (isMounted && data.success && Array.isArray(data.data)) {
-          setServices(data.data as Service[]);
+        if (isMounted && data.success && Array.isArray(data.services)) {
+          // If API returns empty services, use fallback
+          if (data.services.length === 0) {
+            setServices([
+              {
+                id: "1",
+                name: "Digital Marketing",
+                tagline: "Grow your online presence",
+                href: "/services/digital-marketing",
+                subServices: ["SEO Optimization", "Social Media Marketing", "Content Marketing", "Email Campaigns"],
+                price: "Starting at $999/month"
+              },
+              {
+                id: "2", 
+                name: "Web Development",
+                tagline: "Build stunning websites",
+                href: "/services/web-development",
+                subServices: ["Responsive Design", "E-commerce Solutions", "Custom Applications", "Website Maintenance"],
+                price: "Starting at $1499"
+              },
+              {
+                id: "3",
+                name: "AI Automation",
+                tagline: "Automate your workflows",
+                href: "/services/ai-automation", 
+                subServices: ["Process Automation", "Chatbot Integration", "Data Analytics", "Smart Workflows"],
+                price: "Starting at $799/month"
+              }
+            ]);
+          } else {
+            setServices(data.services as Service[]);
+          }
         }
       } catch (error) {
         console.error("Failed to load services", error);
+        // Add fallback services if API fails
+        if (isMounted) {
+          setServices([
+            {
+              id: "1",
+              name: "Digital Marketing",
+              tagline: "Grow your online presence",
+              href: "/services/digital-marketing",
+              subServices: ["SEO Optimization", "Social Media Marketing", "Content Marketing", "Email Campaigns"],
+              price: "Starting at $999/month"
+            },
+            {
+              id: "2", 
+              name: "Web Development",
+              tagline: "Build stunning websites",
+              href: "/services/web-development",
+              subServices: ["Responsive Design", "E-commerce Solutions", "Custom Applications", "Website Maintenance"],
+              price: "Starting at $1499"
+            },
+            {
+              id: "3",
+              name: "AI Automation",
+              tagline: "Automate your workflows",
+              href: "/services/ai-automation", 
+              subServices: ["Process Automation", "Chatbot Integration", "Data Analytics", "Smart Workflows"],
+              price: "Starting at $799/month"
+            }
+          ]);
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
