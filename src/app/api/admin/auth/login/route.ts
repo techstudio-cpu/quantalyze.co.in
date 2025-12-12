@@ -6,8 +6,19 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 
 const ADMIN_CREDENTIALS = {
   username: process.env.ADMIN_USERNAME || 'admin',
-  passwordHash: process.env.ADMIN_PASSWORD_HASH || bcrypt.hashSync('admin123', 10)
+  passwordHash: process.env.ADMIN_PASSWORD_HASH || '$2b$10$eHRYiS4NY2616oJv8TB9EO2klAfsf4W7OaXm2HSIFLK6vlN0gOy2O'
 };
+
+// Debug: Log environment variables (remove in production)
+console.log('DEBUG - Environment vars:', {
+  ADMIN_USERNAME: process.env.ADMIN_USERNAME,
+  ADMIN_PASSWORD_HASH: process.env.ADMIN_PASSWORD_HASH ? 'SET' : 'NOT_SET',
+  NODE_ENV: process.env.NODE_ENV
+});
+console.log('DEBUG - ADMIN_CREDENTIALS:', {
+  username: ADMIN_CREDENTIALS.username,
+  passwordHash: ADMIN_CREDENTIALS.passwordHash ? 'SET' : 'NOT_SET'
+});
 
 export async function POST(request: NextRequest) {
   try {
