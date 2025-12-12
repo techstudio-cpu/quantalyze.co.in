@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -261,30 +262,24 @@ export default function AdminPage() {
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a
-              href="/api/contact?status=new"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors text-center"
+            <Link
+              href="/admin/contact-submissions"
+              className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors text-center block"
             >
               View Contact Submissions
-            </a>
-            <a
-              href="/api/newsletter"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors text-center"
+            </Link>
+            <Link
+              href="/admin/newsletter"
+              className="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors text-center block"
             >
               View Newsletter Stats
-            </a>
-            <a
-              href="/api/analytics?days=30"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors text-center"
+            </Link>
+            <Link
+              href="/admin/analytics"
+              className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors text-center block"
             >
               View Analytics
-            </a>
+            </Link>
           </div>
         </div>
 

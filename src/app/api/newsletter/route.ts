@@ -106,6 +106,23 @@ export async function GET(request: NextRequest) {
     `;
     const stats = await query(statsQuery) as any[];
 
+    // Handle subscriber list request
+    if (action === 'list') {
+      const listQuery = `
+        SELECT id, email, name, preferences, status, created_at, updated_at
+        FROM newsletter_subscribers
+        ORDER BY created_at DESC
+        LIMIT 100
+      `;
+      const subscribers = await query(listQuery) as any[];
+
+      return NextResponse.json({
+        success: true,
+        stats: stats[0],
+        subscribers
+      });
+    }
+
     return NextResponse.json({
       success: true,
       stats: stats[0]

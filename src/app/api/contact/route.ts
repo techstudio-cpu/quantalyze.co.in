@@ -104,3 +104,50 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, status } = body;
+
+    if (!id || !status) {
+      return NextResponse.json(
+        { success: false, message: 'ID and status are required' },
+        { status: 400 }
+      );
+    }
+
+    const validStatuses = ['new', 'in-progress', 'completed'];
+    if (!validStatuses.includes(status)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid status' },
+        { status: 400 }
+      );
+    }
+
+    const updateQuery = `
+      UPDATE contact_submissions 
+      SET status = ?, updated_at = NOW()
+      WHERE id = ?
+    `;
+    
+    await query(updateQuery, [status, id]);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Status updated successfully'
+    });
+
+  } catch (error: any) {
+    console.error('Contact PATCH error:', error);
+    
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Failed to update status',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
+      { status: 500 }
+    );
+  }
+}
