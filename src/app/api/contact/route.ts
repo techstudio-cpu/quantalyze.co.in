@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { sendEmail } from '@/lib/email-service';
+import { getInquiryDraftTemplate } from '@/emails/templates';
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,6 +45,19 @@ export async function POST(request: NextRequest) {
     await query(analyticsQuery, [
       JSON.stringify({ email, service, company })
     ]);
+
+    // Send draft email to admin
+    const template = getInquiryDraftTemplate({ name, email, phone, message });
+    const emailResult = await sendEmail({
+      to: process.env.ADMIN_EMAIL!,
+      subject: `[DRAFT] ${template.subject}`,
+      html: template.html,
+      replyTo: email,
+    });
+
+    if (!emailResult.success) {
+      console.error('Failed to send admin email:', emailResult.error);
+    }
 
     return NextResponse.json({
       success: true,
