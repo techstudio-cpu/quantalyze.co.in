@@ -217,3 +217,39 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await ensureTableExists();
+    
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: 'Course ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const deleteQuery = 'DELETE FROM courses WHERE id = ?';
+    await query(deleteQuery, [id]);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Course deleted successfully'
+    });
+
+  } catch (error: any) {
+    console.error('Courses DELETE error:', error);
+    
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Failed to delete course',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
+      { status: 500 }
+    );
+  }
+}
