@@ -40,12 +40,12 @@ export async function POST(request: NextRequest) {
     `;
 
     await query(insertQuery, [
-      'Automation Workflow / AI Agents', 'Transform your business with intelligent automation and AI-powered workflows', 'FaRobot', 'automation', 45000, true, 'active',
-      JSON.stringify(['Custom AI agent development', 'Workflow automation solutions', 'Process optimization with AI', 'Intelligent customer service bots', 'Data-driven decision making']),
+      'Automation Workflow / AI Agents', 'Custom AI agent development, workflow automation, process optimization', 'FaRobot', 'automation', 45000, true, 'active',
+      JSON.stringify(['Custom AI agent development', 'Workflow automation', 'Process optimization']),
       JSON.stringify([]),
 
-      'Digital Marketing', 'Comprehensive digital marketing strategies to grow your brand and reach', 'FaBullhorn', 'marketing', 35000, true, 'active',
-      JSON.stringify(['Multi-channel marketing campaigns', 'Data-driven strategy development', 'ROI-focused marketing solutions', 'Brand awareness and growth']),
+      'Digital Marketing', 'Multi-channel campaigns, data-driven strategies, ROI-focused solutions', 'FaBullhorn', 'marketing', 35000, true, 'active',
+      JSON.stringify(['Multi-channel campaigns', 'Data-driven strategies', 'ROI-focused solutions']),
       JSON.stringify([
         { name: 'Social Media', href: '/services/social-media-marketing', description: 'Strategic social media management and campaigns' },
         { name: 'Content Creation', href: '/services/content-writing', description: 'Engaging content that converts and resonates' },
@@ -56,20 +56,20 @@ export async function POST(request: NextRequest) {
         { name: 'E-Commerce', href: '/services/ecommerce', description: 'Online store setup and optimization' }
       ]),
 
-      'Web / App Development', 'Custom web and mobile applications built for performance and scalability', 'FaCube', 'development', 55000, true, 'active',
-      JSON.stringify(['Custom web applications', 'Mobile app development', 'E-commerce platforms', 'API development and integration', 'Progressive Web Apps (PWA)']),
+      'Web / App Development', 'Custom web applications, mobile apps, e-commerce platforms', 'FaCube', 'development', 55000, true, 'active',
+      JSON.stringify(['Custom web applications', 'Mobile apps', 'E-commerce platforms']),
       JSON.stringify([]),
 
-      'Branding', 'Create a powerful brand identity that stands out in the market', 'FaLightbulb', 'branding', 40000, true, 'active',
-      JSON.stringify(['Brand strategy and positioning', 'Visual identity design', 'Logo and brand guidelines', 'Brand messaging and tone', 'Market research and analysis']),
+      'Branding', 'Brand strategy, visual identity, logo design', 'FaLightbulb', 'branding', 40000, true, 'active',
+      JSON.stringify(['Brand strategy', 'Visual identity', 'Logo design']),
       JSON.stringify([]),
 
-      'Lead Generation', 'Generate high-quality leads that convert into loyal customers', 'FaChartLine', 'marketing', 30000, true, 'active',
-      JSON.stringify(['Targeted lead generation campaigns', 'Landing page optimization', 'Sales funnel development', 'Lead nurturing strategies', 'Conversion rate optimization']),
+      'Lead Generation', 'Targeted campaigns, landing page optimization, sales funnel development', 'FaChartLine', 'marketing', 30000, true, 'active',
+      JSON.stringify(['Targeted campaigns', 'Landing page optimization', 'Sales funnel development']),
       JSON.stringify([]),
 
-      'GEO Marketing', 'Location-based marketing strategies to reach local customers effectively', 'FaGlobe', 'marketing', 25000, true, 'active',
-      JSON.stringify(['Local SEO optimization', 'Geotargeted advertising', 'Location-based campaigns', 'Regional market analysis', 'Local business listings']),
+      'GEO Marketing', 'Local SEO, geotargeted advertising, location-based campaigns', 'FaGlobe', 'marketing', 25000, true, 'active',
+      JSON.stringify(['Local SEO', 'Geotargeted advertising', 'Location-based campaigns']),
       JSON.stringify([])
     ]);
 
