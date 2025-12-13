@@ -68,11 +68,10 @@ export async function POST(request: Request) {
       await query(insertQuery, [email, name]);
     }
 
-    // Send welcome email from admin@quantalyze.co.in
+    // Send welcome email
     const template = getThankYouTemplate(name);
     const result = await sendEmail({
       to: email,
-      from: 'admin@quantalyze.co.in',
       subject: template.subject,
       html: template.html,
       text: template.text,
