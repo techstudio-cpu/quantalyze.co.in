@@ -108,7 +108,8 @@ export async function GET(request: NextRequest) {
     
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limitParam = searchParams.get('limit');
+    const limit = limitParam ? parseInt(limitParam, 10) : 50;
 
     let selectQuery = `
       SELECT id, name, email, phone, company, service_interest, message, status, created_at
@@ -124,12 +125,20 @@ export async function GET(request: NextRequest) {
     
     selectQuery += ' ORDER BY created_at DESC';
     
-    if (limit > 0) {
+    if (limit > 0 && limit < 1000) { // Safety check
       selectQuery += ' LIMIT ?';
       params.push(limit);
     }
 
-    const submissions = await query(selectQuery, params);
+    // Handle case where parameters might not work with LIMIT
+    let submissions;
+    if (params.length > 0 && limit > 0) {
+      submissions = await query(selectQuery, params);
+    } else if (limit > 0) {
+      submissions = await query(selectQuery + ` LIMIT ${limit}`);
+    } else {
+      submissions = await query(selectQuery);
+    }
 
     return NextResponse.json({
       success: true,

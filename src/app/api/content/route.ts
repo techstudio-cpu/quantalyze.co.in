@@ -7,13 +7,6 @@ const ensureTableExists = async () => {
     await query(`
       CREATE TABLE IF NOT EXISTS content (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        title VARCHAR(255) NOT NULL,
-        type VARCHAR(50) NOT NULL,
-        category VARCHAR(100),
-        slug VARCHAR(255) NOT NULL UNIQUE,
-        body TEXT,
-        status ENUM('draft', 'published', 'archived') DEFAULT 'draft',
-        published_at TIMESTAMP NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
@@ -23,9 +16,42 @@ const ensureTableExists = async () => {
   }
 };
 
+// Check if columns exist and add them if needed
+const ensureColumnsExist = async () => {
+  try {
+    // List of required columns for content table
+    const requiredColumns = [
+      { name: 'title', type: 'VARCHAR(255) NOT NULL' },
+      { name: 'type', type: 'VARCHAR(50) NOT NULL' },
+      { name: 'category', type: 'VARCHAR(100)' },
+      { name: 'slug', type: 'VARCHAR(255) NOT NULL UNIQUE' },
+      { name: 'body', type: 'TEXT' },
+      { name: 'status', type: "ENUM('draft', 'published', 'archived') DEFAULT 'draft'" },
+      { name: 'published_at', type: 'TIMESTAMP NULL' }
+    ];
+
+    for (const column of requiredColumns) {
+      const columnCheck = await query(`
+        SELECT COLUMN_NAME 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_NAME = 'content' 
+        AND COLUMN_NAME = '${column.name}' 
+        AND TABLE_SCHEMA = DATABASE()
+      `) as any[];
+      
+      if (columnCheck.length === 0) {
+        await query(`ALTER TABLE content ADD COLUMN ${column.name} ${column.type}`);
+      }
+    }
+  } catch (error) {
+    console.log('Column check error:', error);
+  }
+};
+
 export async function GET(request: NextRequest) {
   try {
     await ensureTableExists();
+    await ensureColumnsExist();
     
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
@@ -78,6 +104,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await ensureTableExists();
+    await ensureColumnsExist();
     
     const body = await request.json();
     const { title, type, category, slug, content: bodyContent } = body;
@@ -126,6 +153,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     await ensureTableExists();
+    await ensureColumnsExist();
     
     const body = await request.json();
     const { id, status, title, type, category, slug, content: bodyContent } = body;
@@ -207,6 +235,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     await ensureTableExists();
+    await ensureColumnsExist();
     
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
