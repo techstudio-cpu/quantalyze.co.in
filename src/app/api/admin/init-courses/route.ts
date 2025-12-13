@@ -61,6 +61,25 @@ const sampleCourses = [
 
 export async function POST(request: NextRequest) {
   try {
+    // Create courses table if it doesn't exist
+    await query(`
+      CREATE TABLE IF NOT EXISTS courses (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        category VARCHAR(100),
+        price DECIMAL(10, 2),
+        duration VARCHAR(50),
+        level VARCHAR(50),
+        featured BOOLEAN DEFAULT FALSE,
+        status ENUM('active', 'inactive') DEFAULT 'active',
+        modules INT DEFAULT 1,
+        enrolled_students INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
     // Check if courses already exist
     const existingCourses = await query('SELECT COUNT(*) as count FROM courses') as any[];
     

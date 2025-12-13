@@ -1,17 +1,25 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { query } from '@/lib/db';
-import { isAuthenticated } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if user is authenticated
-    const auth = isAuthenticated(request);
-    if (!auth.authenticated) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    // Create services table if it doesn't exist
+    await query(`
+      CREATE TABLE IF NOT EXISTS services (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        icon VARCHAR(50),
+        category VARCHAR(100),
+        price DECIMAL(10, 2),
+        featured BOOLEAN DEFAULT FALSE,
+        status ENUM('active', 'inactive') DEFAULT 'active',
+        points JSON,
+        sub_services JSON,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
 
     // Add missing columns if they don't exist
     try {

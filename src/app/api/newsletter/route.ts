@@ -3,6 +3,26 @@ import { query } from '@/lib/db';
 import { sendEmail } from '@/lib/email-service';
 import { getThankYouTemplate } from '@/emails/templates';
 
+// Create table if it doesn't exist (this will run on first API call)
+const ensureTableExists = async () => {
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        name VARCHAR(255),
+        preferences JSON,
+        status ENUM('active', 'unsubscribed') DEFAULT 'active',
+        unsubscribed_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (error) {
+    console.log('Newsletter table may already exist:', error);
+  }
+};
+
 async function sendWelcomeEmail(email: string, name?: string) {
   try {
     const safeName = name && name.trim().length > 0 ? name : email.split('@')[0];
@@ -27,6 +47,8 @@ async function sendWelcomeEmail(email: string, name?: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureTableExists();
+    
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
     const email = searchParams.get('email');
@@ -136,6 +158,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    await ensureTableExists();
+    
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
     const email = searchParams.get('email');

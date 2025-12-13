@@ -3,8 +3,32 @@ import { query } from '@/lib/db';
 import { sendEmail } from '@/lib/email-service';
 import { getInquiryDraftTemplate } from '@/emails/templates';
 
+// Create table if it doesn't exist (this will run on first API call)
+const ensureTableExists = async () => {
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS contact_submissions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        phone VARCHAR(50),
+        company VARCHAR(255),
+        service_interest VARCHAR(255),
+        message TEXT,
+        status ENUM('new', 'in-progress', 'completed') DEFAULT 'new',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (error) {
+    console.log('Contact table may already exist:', error);
+  }
+};
+
 export async function POST(request: NextRequest) {
   try {
+    await ensureTableExists();
+    
     const body = await request.json();
     const { name, email, phone, company, service, message } = body;
 
@@ -80,6 +104,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    await ensureTableExists();
+    
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const limit = parseInt(searchParams.get('limit') || '50');

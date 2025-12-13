@@ -1,8 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
+// Create table if it doesn't exist (this will run on first API call)
+const ensureTableExists = async () => {
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS analytics_events (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        event_type VARCHAR(100) NOT NULL,
+        event_data JSON,
+        user_agent TEXT,
+        ip_address VARCHAR(45),
+        session_id VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (error) {
+    console.log('Analytics table may already exist:', error);
+  }
+};
+
 export async function POST(request: NextRequest) {
   try {
+    await ensureTableExists();
+    
     const body = await request.json();
     const { event_type, event_data, session_id } = body;
 
@@ -53,6 +74,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    await ensureTableExists();
+    
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get('days') || '30');
 

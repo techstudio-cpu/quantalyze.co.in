@@ -70,6 +70,22 @@ const sampleContent = [
 
 export async function POST(request: NextRequest) {
   try {
+    // Create content table if it doesn't exist
+    await query(`
+      CREATE TABLE IF NOT EXISTS content (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        type VARCHAR(50) NOT NULL,
+        category VARCHAR(100),
+        slug VARCHAR(255) NOT NULL UNIQUE,
+        body TEXT,
+        status ENUM('draft', 'published', 'archived') DEFAULT 'draft',
+        published_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
     // Check if content already exists
     const existingContent = await query('SELECT COUNT(*) as count FROM content') as any[];
     
