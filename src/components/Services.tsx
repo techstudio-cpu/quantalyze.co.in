@@ -222,7 +222,18 @@ export default function Services() {
         const response = await fetch('/api/services');
         const data = await response.json();
         if (data.success && data.services?.length > 0) {
-          setServices(data.services);
+          // Map API data to component structure
+          const mappedServices = data.services.map((service: any) => ({
+            id: service.id,
+            name: service.title,
+            tagline: service.description,
+            icon: FaCube, // Default icon, can be enhanced later
+            href: `/services/${service.id}`,
+            points: service.points || [], // Add points field to database or use empty array
+            price: service.price,
+            subServices: service.subServices || []
+          }));
+          setServices(mappedServices);
         }
       } catch (error) {
         console.error('Failed to fetch services:', error);
