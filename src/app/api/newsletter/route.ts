@@ -27,10 +27,39 @@ async function sendWelcomeEmail(email: string, name?: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { email, name, preferences } = body;
+    const { searchParams } = new URL(request.url);
+    const action = searchParams.get('action');
+    const email = searchParams.get('email');
+    
+    // Handle unsubscribe action
+    if (action === 'unsubscribe' && email) {
+      const updateQuery = `
+        UPDATE newsletter_subscribers 
+        SET status = 'unsubscribed', 
+            updated_at = NOW(),
+            unsubscribed_at = NOW()
+        WHERE email = ?
+      `;
+      const result = await query(updateQuery, [email]);
 
-    if (!email || !email.includes('@')) {
+      if ((result as any).affectedRows === 0) {
+        return NextResponse.json(
+          { success: false, message: 'Subscriber not found' },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Successfully unsubscribed from newsletter'
+      });
+    }
+
+    // Existing subscription logic
+    const body = await request.json();
+    const { email: subEmail, name, preferences } = body;
+
+    if (!subEmail || !subEmail.includes('@')) {
       return NextResponse.json(
         { success: false, message: 'Valid email is required' },
         { status: 400 }
@@ -38,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     const checkQuery = 'SELECT id, status FROM newsletter_subscribers WHERE email = ?';
-    const existingSubscribers = await query(checkQuery, [email]) as any[];
+    const existingSubscribers = await query(checkQuery, [subEmail]) as any[];
 
     if (existingSubscribers.length > 0) {
       const subscriber = existingSubscribers[0];
@@ -61,10 +90,10 @@ export async function POST(request: NextRequest) {
         await query(updateQuery, [
           name || null,
           preferences ? JSON.stringify(preferences) : null,
-          email
+          subEmail
         ]);
 
-        await sendWelcomeEmail(email, name);
+        await sendWelcomeEmail(subEmail, name);
 
         return NextResponse.json({
           success: true,
@@ -79,12 +108,12 @@ export async function POST(request: NextRequest) {
     `;
     
     await query(insertQuery, [
-      email,
+      subEmail,
       name || null,
       preferences ? JSON.stringify(preferences) : null
     ]);
 
-    await sendWelcomeEmail(email, name);
+    await sendWelcomeEmail(subEmail, name);
 
     return NextResponse.json({
       success: true,
@@ -114,15 +143,23 @@ export async function GET(request: NextRequest) {
     if (action === 'unsubscribe' && email) {
       const updateQuery = `
         UPDATE newsletter_subscribers 
-        SET status = 'unsubscribed', updated_at = NOW()
+        SET status = 'unsubscribed', 
+            updated_at = NOW(),
+            unsubscribed_at = NOW()
         WHERE email = ?
       `;
-      await query(updateQuery, [email]);
+      const result = await query(updateQuery, [email]);
 
-      return NextResponse.json({
-        success: true,
-        message: 'Successfully unsubscribed from newsletter'
-      });
+      if ((result as any).affectedRows === 0) {
+        return NextResponse.json(
+          { success: false, message: 'Subscriber not found' },
+          { status: 404 }
+        );
+      }
+
+      // Redirect to a thank you page
+      const redirectUrl = new URL('/unsubscribed', request.url);
+      return NextResponse.redirect(redirectUrl);
     }
 
     const statsQuery = `
@@ -137,9 +174,22 @@ export async function GET(request: NextRequest) {
     // Handle subscriber list request
     if (action === 'list') {
       const listQuery = `
-        SELECT id, email, name, preferences, status, created_at, updated_at
+        SELECT 
+          id, 
+          email, 
+          name, 
+          preferences, 
+          status, 
+          created_at, 
+          updated_at,
+          unsubscribed_at
         FROM newsletter_subscribers
-        ORDER BY created_at DESC
+        ORDER BY 
+          CASE 
+            WHEN status = 'active' THEN 1 
+            ELSE 2 
+          END,
+          created_at DESC
         LIMIT 100
       `;
       const subscribers = await query(listQuery) as any[];

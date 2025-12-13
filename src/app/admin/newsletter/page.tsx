@@ -64,13 +64,25 @@ export default function NewsletterPage() {
     try {
       const response = await fetch(`/api/newsletter?action=unsubscribe&email=${encodeURIComponent(email)}`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       
-      if (response.ok) {
-        fetchNewsletterData();
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // Refresh the data
+        await fetchNewsletterData();
+        // Show success message
+        setError(''); // Clear any previous errors
+        alert(`Successfully unsubscribed ${email}`);
+      } else {
+        throw new Error(data.message || 'Failed to unsubscribe user');
       }
     } catch (error) {
       console.error('Failed to unsubscribe user:', error);
+      setError(error instanceof Error ? error.message : 'Failed to unsubscribe user');
     }
   };
 
