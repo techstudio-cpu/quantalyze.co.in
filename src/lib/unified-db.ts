@@ -13,8 +13,8 @@ let mysqlPool: mysql.Pool | null = null;
 // Get MySQL configuration from environment
 function getMySQLConfig() {
   // Railway MySQL environment variables
-  if (process.env.MYSQL_URL) {
-    return { uri: process.env.MYSQL_URL };
+  if (process.env.MYSQL_URL || process.env.MYSQL_PUBLIC_URL) {
+    return { uri: process.env.MYSQL_URL || process.env.MYSQL_PUBLIC_URL! };
   }
   
   return {

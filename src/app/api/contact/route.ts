@@ -132,7 +132,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const validStatuses = ['new', 'in-progress', 'completed'];
+    const validStatuses = ['new', 'read', 'replied', 'archived'];
     if (!validStatuses.includes(status)) {
       return NextResponse.json(
         { success: false, message: 'Invalid status' },

@@ -63,6 +63,8 @@ CREATE TABLE IF NOT EXISTS services (
     price VARCHAR(100),
     featured BOOLEAN DEFAULT FALSE,
     status ENUM('active', 'inactive', 'draft') DEFAULT 'active',
+    points JSON NULL,
+    sub_services JSON NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_category (category),

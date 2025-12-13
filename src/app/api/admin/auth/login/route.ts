@@ -10,15 +10,17 @@ const ADMIN_CREDENTIALS = {
 };
 
 // Debug: Log environment variables (remove in production)
-console.log('DEBUG - Environment vars:', {
-  ADMIN_USERNAME: process.env.ADMIN_USERNAME,
-  ADMIN_PASSWORD_HASH: process.env.ADMIN_PASSWORD_HASH ? 'SET' : 'NOT_SET',
-  NODE_ENV: process.env.NODE_ENV
-});
-console.log('DEBUG - ADMIN_CREDENTIALS:', {
-  username: ADMIN_CREDENTIALS.username,
-  passwordHash: ADMIN_CREDENTIALS.passwordHash ? 'SET' : 'NOT_SET'
-});
+if (process.env.NODE_ENV === 'development') {
+  console.log('DEBUG - Environment vars:', {
+    ADMIN_USERNAME: process.env.ADMIN_USERNAME,
+    ADMIN_PASSWORD_HASH: process.env.ADMIN_PASSWORD_HASH ? 'SET' : 'NOT_SET',
+    NODE_ENV: process.env.NODE_ENV
+  });
+  console.log('DEBUG - ADMIN_CREDENTIALS:', {
+    username: ADMIN_CREDENTIALS.username,
+    passwordHash: ADMIN_CREDENTIALS.passwordHash ? 'SET' : 'NOT_SET'
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
