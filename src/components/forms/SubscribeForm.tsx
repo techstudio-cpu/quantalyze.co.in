@@ -39,16 +39,23 @@ export function SubscribeForm() {
         body: JSON.stringify(data),
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to subscribe');
+        throw new Error(result.message || 'Failed to subscribe');
       }
 
-      setIsSuccess(true);
-      setMessage('Thank you for subscribing! Check your email for confirmation.');
-      reset();
-    } catch (error) {
+      if (result.alreadySubscribed) {
+        setIsSuccess(true);
+        setMessage(result.message);
+      } else {
+        setIsSuccess(true);
+        setMessage(result.message);
+        reset();
+      }
+    } catch (error: any) {
       setIsSuccess(false);
-      setMessage('Failed to subscribe. Please try again.');
+      setMessage(error.message || 'Failed to subscribe. Please try again.');
     } finally {
       setIsLoading(false);
     }
