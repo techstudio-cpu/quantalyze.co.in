@@ -1,8 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
+// Create table if it doesn't exist (this will run on first API call)
+const ensureTableExists = async () => {
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS courses (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        category VARCHAR(100),
+        price DECIMAL(10, 2),
+        duration VARCHAR(50),
+        level VARCHAR(50),
+        featured BOOLEAN DEFAULT FALSE,
+        status ENUM('active', 'inactive') DEFAULT 'active',
+        modules INT DEFAULT 1,
+        enrolled_students INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (error) {
+    console.log('Courses table may already exist:', error);
+  }
+};
+
 export async function GET(request: NextRequest) {
   try {
+    await ensureTableExists();
+    
     const { searchParams } = new URL(request.url);
     const featured = searchParams.get('featured');
     const category = searchParams.get('category');
@@ -49,6 +76,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureTableExists();
+    
     const body = await request.json();
     const { title, description, category, price, duration, level, featured, modules } = body;
 
@@ -98,6 +127,8 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    await ensureTableExists();
+    
     const body = await request.json();
     const { id, featured, status, title, description, category, price, duration, level, modules } = body;
 

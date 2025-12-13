@@ -1,8 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
+// Create table if it doesn't exist (this will run on first API call)
+const ensureTableExists = async () => {
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS content (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        type VARCHAR(50) NOT NULL,
+        category VARCHAR(100),
+        slug VARCHAR(255) NOT NULL UNIQUE,
+        body TEXT,
+        status ENUM('draft', 'published', 'archived') DEFAULT 'draft',
+        published_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (error) {
+    console.log('Content table may already exist:', error);
+  }
+};
+
 export async function GET(request: NextRequest) {
   try {
+    await ensureTableExists();
+    
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
     const section = searchParams.get('section');
@@ -53,6 +77,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureTableExists();
+    
     const body = await request.json();
     const { title, type, category, slug, content: bodyContent } = body;
 
@@ -99,6 +125,8 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    await ensureTableExists();
+    
     const body = await request.json();
     const { id, status, title, type, category, slug, content: bodyContent } = body;
 
