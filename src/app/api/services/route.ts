@@ -252,3 +252,40 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await ensureTableExists();
+    await ensureColumnsExist();
+    
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: 'Service ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const deleteQuery = 'DELETE FROM services WHERE id = ?';
+    await query(deleteQuery, [id]);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Service deleted successfully'
+    });
+
+  } catch (error: any) {
+    console.error('Services DELETE error:', error);
+    
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Failed to delete service',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
+      { status: 500 }
+    );
+  }
+}

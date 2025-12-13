@@ -23,6 +23,16 @@ export default function AdminContentPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [editingContent, setEditingContent] = useState<Content | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    type: 'blog',
+    category: '',
+    slug: '',
+    body: '',
+    status: 'draft'
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -132,6 +142,122 @@ export default function AdminContentPage() {
     }
   };
 
+  const deleteContent = async (contentId: string) => {
+    if (!confirm('Are you sure you want to delete this content?')) return;
+    
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
+      
+      const response = await fetch(`/api/content?id=${contentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        fetchContent();
+      } else {
+        setError('Failed to delete content');
+      }
+    } catch (error) {
+      setError('Error deleting content');
+    }
+  };
+
+  const createContent = async () => {
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
+      
+      const response = await fetch('/api/content', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        setShowCreateForm(false);
+        setFormData({
+          title: '',
+          type: 'blog',
+          category: '',
+          slug: '',
+          body: '',
+          status: 'draft'
+        });
+        fetchContent();
+      } else {
+        setError('Failed to create content');
+      }
+    } catch (error) {
+      setError('Error creating content');
+    }
+  };
+
+  const updateContent = async () => {
+    if (!editingContent) return;
+    
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
+      
+      const response = await fetch('/api/content', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: editingContent.id,
+          ...formData
+        })
+      });
+
+      if (response.ok) {
+        setEditingContent(null);
+        setFormData({
+          title: '',
+          type: 'blog',
+          category: '',
+          slug: '',
+          body: '',
+          status: 'draft'
+        });
+        fetchContent();
+      } else {
+        setError('Failed to update content');
+      }
+    } catch (error) {
+      setError('Error updating content');
+    }
+  };
+
+  const startEdit = (contentItem: Content) => {
+    setEditingContent(contentItem);
+    setFormData({
+      title: contentItem.title,
+      type: contentItem.type,
+      category: contentItem.category,
+      slug: contentItem.slug,
+      body: '', // This would need to be fetched separately if needed
+      status: contentItem.status
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingContent(null);
+    setFormData({
+      title: '',
+      type: 'blog',
+      category: '',
+      slug: '',
+      body: '',
+      status: 'draft'
+    });
+  };
+
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'blog': return 'bg-blue-100 text-blue-800';
@@ -232,6 +358,12 @@ export default function AdminContentPage() {
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold text-gray-900">Content Items</h2>
                 <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => setShowCreateForm(true)}
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                  >
+                    Create Content
+                  </button>
                   <select
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
@@ -302,16 +434,30 @@ export default function AdminContentPage() {
                         {contentItem.published_at ? new Date(contentItem.published_at).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => toggleStatus(contentItem.id)}
-                          className={`px-3 py-1 rounded text-sm ${
-                            contentItem.status === 'published'
-                              ? 'bg-yellow-500 text-white hover:bg-yellow-600'
-                              : 'bg-green-500 text-white hover:bg-green-600'
-                          } transition-colors`}
-                        >
-                          {contentItem.status === 'published' ? 'Unpublish' : 'Publish'}
-                        </button>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => toggleStatus(contentItem.id)}
+                            className={`px-3 py-1 rounded text-sm ${
+                              contentItem.status === 'published'
+                                ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                                : 'bg-green-500 text-white hover:bg-green-600'
+                            } transition-colors`}
+                          >
+                            {contentItem.status === 'published' ? 'Unpublish' : 'Publish'}
+                          </button>
+                          <button
+                            onClick={() => startEdit(contentItem)}
+                            className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => deleteContent(contentItem.id)}
+                            className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -323,6 +469,105 @@ export default function AdminContentPage() {
                   <p className="text-gray-500">No content found for this filter.</p>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+        
+        {/* Create/Edit Content Modal */}
+        {(showCreateForm || editingContent) && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                {editingContent ? 'Edit Content' : 'Create New Content'}
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Title</label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-400 focus:ring-yellow-400 p-2 border"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Type</label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-400 focus:ring-yellow-400 p-2 border"
+                  >
+                    <option value="blog">Blog Post</option>
+                    <option value="page">Page</option>
+                    <option value="tutorial">Tutorial</option>
+                    <option value="case_study">Case Study</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Category</label>
+                  <input
+                    type="text"
+                    value={formData.category}
+                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-400 focus:ring-yellow-400 p-2 border"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Slug</label>
+                  <input
+                    type="text"
+                    value={formData.slug}
+                    onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-400 focus:ring-yellow-400 p-2 border"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-400 focus:ring-yellow-400 p-2 border"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Body Content</label>
+                  <textarea
+                    value={formData.body}
+                    onChange={(e) => setFormData({...formData, body: e.target.value})}
+                    rows={4}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-400 focus:ring-yellow-400 p-2 border"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setEditingContent(null);
+                    cancelEdit();
+                  }}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={editingContent ? updateContent : createContent}
+                  className="px-4 py-2 bg-yellow-400 text-black rounded-md hover:bg-yellow-500 transition-colors"
+                >
+                  {editingContent ? 'Update' : 'Create'}
+                </button>
+              </div>
             </div>
           </div>
         )}
