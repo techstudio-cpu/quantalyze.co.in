@@ -257,7 +257,7 @@ export default function Services() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {services.map((service) => {
+              {(services || []).map((service) => {
                 const Icon = service.icon;
                 const hasSubServices = service.subServices && service.subServices.length > 0;
                 const isExpanded = expandedService === service.id;
@@ -345,7 +345,7 @@ export default function Services() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {courses.map((course) => {
+            {(courses || []).map((course) => {
               const Icon = course.icon;
               
               return (
