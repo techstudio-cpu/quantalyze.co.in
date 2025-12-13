@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ComponentType } from "react";
 import Link from "next/link";
-import { FaBullhorn, FaCode, FaRobot, FaChevronDown, FaChartLine, FaGraduationCap, FaGlobe, FaLightbulb, FaShoppingCart, FaEnvelope, FaSearch, FaUserFriends, FaVideo, FaNewspaper, FaCube } from "react-icons/fa";
+import { FaBullhorn, FaRobot, FaChevronDown, FaChartLine, FaGraduationCap, FaGlobe, FaLightbulb, FaShoppingCart, FaEnvelope, FaSearch, FaUserFriends, FaVideo, FaNewspaper, FaCube } from "react-icons/fa";
 
 type Service = {
   id: string;
@@ -58,7 +58,7 @@ const STATIC_SERVICES: Service[] = [
     id: "web-app-development",
     name: "Web / App Development",
     tagline: "Custom web and mobile applications built for performance and scalability",
-    icon: FaCode,
+    icon: FaCube,
     href: "/services/website-development",
     points: [
       "Custom web applications",
@@ -290,7 +290,7 @@ export default function Services() {
                           {service.subServices!.map((subService, index) => (
                             <div key={index} className="bg-gray-50 p-3 rounded-lg">
                               <Link
-                                href={subService.href}
+                                href={subService.href || '#'}
                                 className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                               >
                                 {subService.name}
@@ -318,7 +318,7 @@ export default function Services() {
                             </button>
                           )}
                           <Link
-                            href={service.href}
+                            href={service.href || '#'}
                             className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500 transition-colors text-sm font-medium"
                           >
                             Learn More
@@ -378,7 +378,7 @@ export default function Services() {
                       )}
                       
                       <Link
-                        href={course.href}
+                        href={course.href || '#'}
                         className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500 transition-colors text-sm font-medium"
                       >
                         Enroll Now

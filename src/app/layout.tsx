@@ -4,7 +4,6 @@ import TopBar from "@/components/TopBar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { AdminLayoutWrapper } from "@/components/AdminLayoutWrapper";
-import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -43,11 +42,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="min-h-screen font-sans bg-yellow-50 text-gray-900" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" }}>
-        <ThemeProvider>
-          <AdminLayoutWrapper>
-            {children}
-          </AdminLayoutWrapper>
-        </ThemeProvider>
+        <AdminLayoutWrapper>
+          {children}
+        </AdminLayoutWrapper>
       </body>
     </html>
   );
