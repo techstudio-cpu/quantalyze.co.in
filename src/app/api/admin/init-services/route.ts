@@ -21,16 +21,36 @@ export async function POST(request: NextRequest) {
       )
     `);
 
-    // Add missing columns if they don't exist
+    // Add missing columns if they don't exist (MySQL compatible approach)
     try {
-      await query(`
-        ALTER TABLE services 
-        ADD COLUMN IF NOT EXISTS points JSON,
-        ADD COLUMN IF NOT EXISTS sub_services JSON
-      `);
+      // Check if points column exists
+      const pointsCheck = await query(`
+        SELECT COLUMN_NAME 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_NAME = 'services' 
+        AND COLUMN_NAME = 'points' 
+        AND TABLE_SCHEMA = DATABASE()
+      `) as any[];
+      
+      if (pointsCheck.length === 0) {
+        await query('ALTER TABLE services ADD COLUMN points JSON');
+      }
+      
+      // Check if sub_services column exists
+      const subServicesCheck = await query(`
+        SELECT COLUMN_NAME 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_NAME = 'services' 
+        AND COLUMN_NAME = 'sub_services' 
+        AND TABLE_SCHEMA = DATABASE()
+      `) as any[];
+      
+      if (subServicesCheck.length === 0) {
+        await query('ALTER TABLE services ADD COLUMN sub_services JSON');
+      }
     } catch (error) {
-      // Columns might already exist, continue
-      console.log('Columns may already exist:', error);
+      // Columns might already exist or other error, continue
+      console.log('Column check error:', error);
     }
 
     // Clear existing data

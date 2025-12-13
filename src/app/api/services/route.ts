@@ -1,8 +1,68 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
+// Create table if it doesn't exist (this will run on first API call)
+const ensureTableExists = async () => {
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS services (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        icon VARCHAR(50),
+        category VARCHAR(100),
+        price DECIMAL(10, 2),
+        featured BOOLEAN DEFAULT FALSE,
+        status ENUM('active', 'inactive') DEFAULT 'active',
+        points JSON,
+        sub_services JSON,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (error) {
+    console.log('Services table may already exist:', error);
+  }
+};
+
+// Check if columns exist and add them if needed
+const ensureColumnsExist = async () => {
+  try {
+    // Check if points column exists
+    const pointsCheck = await query(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_NAME = 'services' 
+      AND COLUMN_NAME = 'points' 
+      AND TABLE_SCHEMA = DATABASE()
+    `) as any[];
+    
+    if (pointsCheck.length === 0) {
+      await query('ALTER TABLE services ADD COLUMN points JSON');
+    }
+    
+    // Check if sub_services column exists
+    const subServicesCheck = await query(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_NAME = 'services' 
+      AND COLUMN_NAME = 'sub_services' 
+      AND TABLE_SCHEMA = DATABASE()
+    `) as any[];
+    
+    if (subServicesCheck.length === 0) {
+      await query('ALTER TABLE services ADD COLUMN sub_services JSON');
+    }
+  } catch (error) {
+    console.log('Column check error:', error);
+  }
+};
+
 export async function GET(request: NextRequest) {
   try {
+    await ensureTableExists();
+    await ensureColumnsExist();
+    
     const { searchParams } = new URL(request.url);
     const featured = searchParams.get('featured');
     const category = searchParams.get('category');
@@ -49,6 +109,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureTableExists();
+    await ensureColumnsExist();
+    
     const body = await request.json();
     const { title, description, icon, category, price, featured, points, sub_services } = body;
 
@@ -98,6 +161,9 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    await ensureTableExists();
+    await ensureColumnsExist();
+    
     const body = await request.json();
     const { id, featured, status, title, description, icon, category, price, points, sub_services } = body;
 
