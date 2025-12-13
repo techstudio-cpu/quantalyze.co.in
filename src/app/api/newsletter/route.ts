@@ -1,5 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { sendEmail } from '@/lib/email-service';
+import { getThankYouTemplate } from '@/emails/templates';
+
+async function sendWelcomeEmail(email: string, name?: string) {
+  try {
+    const safeName = name && name.trim().length > 0 ? name : email.split('@')[0];
+    const template = getThankYouTemplate(safeName);
+
+    const baseUrl = process.env.NEXTAUTH_URL || 'https://quantalyze.co.in';
+    const unsubscribeUrl = `${baseUrl}/api/newsletter?action=unsubscribe&email=${encodeURIComponent(email)}`;
+
+    const html = template.html.replace(/%unsubscribe_url%/g, unsubscribeUrl);
+    const text = template.text.replace(/%unsubscribe_url%/g, unsubscribeUrl);
+
+    await sendEmail({
+      to: email,
+      subject: template.subject,
+      html,
+      text,
+    });
+  } catch (error) {
+    console.error('Newsletter welcome email error:', error);
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,6 +64,8 @@ export async function POST(request: NextRequest) {
           email
         ]);
 
+        await sendWelcomeEmail(email, name);
+
         return NextResponse.json({
           success: true,
           message: 'Welcome back! Your subscription has been reactivated.'
@@ -57,6 +83,8 @@ export async function POST(request: NextRequest) {
       name || null,
       preferences ? JSON.stringify(preferences) : null
     ]);
+
+    await sendWelcomeEmail(email, name);
 
     return NextResponse.json({
       success: true,
