@@ -36,9 +36,11 @@ export default function AdminSidebar() {
 
   const handleLogout = () => {
     // Clear client-side authentication
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
-    document.cookie = 'adminToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    if (typeof window !== "undefined") {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminUser');
+      document.cookie = 'adminToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
     
     // Redirect to login
     router.push('/admin/login');

@@ -257,6 +257,7 @@ export const healthAPI = {
 // ============= Utility Functions =============
 
 export function downloadBlob(blob: Blob, filename: string) {
+  if (typeof window === "undefined") return;
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

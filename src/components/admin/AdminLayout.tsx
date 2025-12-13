@@ -16,8 +16,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   useEffect(() => {
     // Check authentication
     const checkAuth = async () => {
-      const token = localStorage.getItem('adminToken') || 
-                   document.cookie.split('; ').find(row => row.startsWith('adminToken='))?.split('=')[1];
+      const token = typeof window !== "undefined" 
+        ? (localStorage.getItem('adminToken') || 
+           document.cookie.split('; ').find(row => row.startsWith('adminToken='))?.split('=')[1])
+        : null;
       
       if (!token && !pathname.startsWith('/admin/login')) {
         router.push('/admin/login');

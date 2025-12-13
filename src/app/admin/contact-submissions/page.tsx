@@ -24,7 +24,7 @@ export default function ContactSubmissionsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
+    const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
     if (!token) {
       router.push('/admin');
       return;

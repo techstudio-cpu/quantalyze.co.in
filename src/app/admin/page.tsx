@@ -21,7 +21,7 @@ export default function AdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
+    const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
     if (token) {
       verifyToken(token);
     } else {
@@ -80,10 +80,14 @@ export default function AdminPage() {
       if (response.ok) {
         setIsAuthenticated(true);
       } else {
-        localStorage.removeItem('adminToken');
+        if (typeof window !== "undefined") {
+          localStorage.removeItem('adminToken');
+        }
       }
     } catch (error) {
-      localStorage.removeItem('adminToken');
+      if (typeof window !== "undefined") {
+        localStorage.removeItem('adminToken');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +110,9 @@ export default function AdminPage() {
       const data = await response.json();
 
       if (data.success && data.token) {
-        localStorage.setItem('adminToken', data.token);
+        if (typeof window !== "undefined") {
+          localStorage.setItem('adminToken', data.token);
+        }
         setIsAuthenticated(true);
       } else {
         setError(data.error || 'Login failed');
@@ -119,7 +125,9 @@ export default function AdminPage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('adminToken');
+    if (typeof window !== "undefined") {
+      localStorage.removeItem('adminToken');
+    }
     setIsAuthenticated(false);
     setUsername('');
     setPassword('');

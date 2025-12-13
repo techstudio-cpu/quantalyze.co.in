@@ -27,6 +27,7 @@ function getPreferredTheme(): Theme {
 }
 
 function applyTheme(theme: Theme) {
+  if (typeof window === "undefined") return;
   const root = document.documentElement;
   root.classList.toggle("dark", theme === "dark");
   root.style.setProperty("color-scheme", theme === "dark" ? "dark" : "light");
