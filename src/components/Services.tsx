@@ -270,13 +270,13 @@ export default function Services() {
                     <div className="p-6">
                       <div className="flex items-center mb-4">
                         <Icon className="h-8 w-8 text-yellow-500 mr-3" />
-                        <h3 className="text-xl font-bold text-gray-900">{service.name}</h3>
+                        <h3 className="text-xl font-bold text-gray-900">{service.name || 'Service'}</h3>
                       </div>
                       
-                      <p className="text-gray-600 mb-4">{service.tagline}</p>
+                      <p className="text-gray-600 mb-4">{service.tagline || ''}</p>
                       
                       <ul className="space-y-2 mb-6">
-                        {service.points.slice(0, isExpanded ? undefined : 3).map((point, index) => (
+                        {(service.points || []).slice(0, isExpanded ? undefined : 3).map((point, index) => (
                           <li key={index} className="flex items-start">
                             <div className="h-2 w-2 bg-yellow-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                             <span className="text-gray-700 text-sm">{point}</span>
@@ -356,13 +356,13 @@ export default function Services() {
                   <div className="p-6">
                     <div className="flex items-center mb-4">
                       <Icon className="h-8 w-8 text-yellow-500 mr-3" />
-                      <h3 className="text-xl font-bold text-gray-900">{course.name}</h3>
+                      <h3 className="text-xl font-bold text-gray-900">{course.name || 'Course'}</h3>
                     </div>
                     
-                    <p className="text-gray-600 mb-4">{course.tagline}</p>
+                    <p className="text-gray-600 mb-4">{course.tagline || ''}</p>
                     
                     <ul className="space-y-2 mb-6">
-                      {course.points.slice(0, 3).map((point, index) => (
+                      {(course.points || []).slice(0, 3).map((point, index) => (
                         <li key={index} className="flex items-start">
                           <div className="h-2 w-2 bg-yellow-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                           <span className="text-gray-700 text-sm">{point}</span>
