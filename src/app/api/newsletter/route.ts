@@ -23,6 +23,26 @@ const ensureTableExists = async () => {
   }
 };
 
+// Check if columns exist and add them if needed
+const ensureColumnsExist = async () => {
+  try {
+    // Check if unsubscribed_at column exists
+    const unsubscribedCheck = await query(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_NAME = 'newsletter_subscribers' 
+      AND COLUMN_NAME = 'unsubscribed_at' 
+      AND TABLE_SCHEMA = DATABASE()
+    `) as any[];
+    
+    if (unsubscribedCheck.length === 0) {
+      await query('ALTER TABLE newsletter_subscribers ADD COLUMN unsubscribed_at TIMESTAMP NULL');
+    }
+  } catch (error) {
+    console.log('Column check error:', error);
+  }
+};
+
 async function sendWelcomeEmail(email: string, name?: string) {
   try {
     const safeName = name && name.trim().length > 0 ? name : email.split('@')[0];
@@ -48,6 +68,7 @@ async function sendWelcomeEmail(email: string, name?: string) {
 export async function POST(request: NextRequest) {
   try {
     await ensureTableExists();
+    await ensureColumnsExist();
     
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
@@ -159,6 +180,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     await ensureTableExists();
+    await ensureColumnsExist();
     
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');

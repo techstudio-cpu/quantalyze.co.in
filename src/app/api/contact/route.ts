@@ -122,8 +122,12 @@ export async function GET(request: NextRequest) {
       params.push(status);
     }
     
-    selectQuery += ' ORDER BY created_at DESC LIMIT ?';
-    params.push(limit);
+    selectQuery += ' ORDER BY created_at DESC';
+    
+    if (limit > 0) {
+      selectQuery += ' LIMIT ?';
+      params.push(limit);
+    }
 
     const submissions = await query(selectQuery, params);
 
