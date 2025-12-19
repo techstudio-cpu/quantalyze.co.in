@@ -10,10 +10,12 @@ interface Course {
   description: string;
   category: string;
   price: number;
+  show_price?: boolean;
   duration: string;
   level: string;
   featured: boolean;
   status: string;
+  deleted_at?: string | null;
   modules: number;
   enrolled_students: number;
   created_at: string;
@@ -26,6 +28,8 @@ export default function AdminCoursesPage() {
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [includeDeleted, setIncludeDeleted] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -33,6 +37,7 @@ export default function AdminCoursesPage() {
     description: '',
     category: '',
     price: '',
+    show_price: true,
     duration: '',
     level: 'beginner',
     featured: false,
@@ -51,6 +56,12 @@ export default function AdminCoursesPage() {
       router.push('/admin');
     }
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCourses();
+    }
+  }, [isAuthenticated, statusFilter, includeDeleted]);
 
   const verifyToken = async (token: string) => {
     try {
@@ -79,10 +90,41 @@ export default function AdminCoursesPage() {
     }
   };
 
+  const handleRestore = async (courseId: string) => {
+    if (!confirm('Restore this course? It will be set to active.')) return;
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
+      const response = await fetch('/api/courses', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: courseId, restore: true })
+      });
+      const data = await response.json();
+      if (data.success) {
+        fetchCourses();
+      } else {
+        setError(data.message || 'Failed to restore course');
+      }
+    } catch (error) {
+      setError('Error restoring course');
+    }
+  };
+
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/courses');
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
+      const params = new URLSearchParams();
+      params.set('status', statusFilter);
+      if (includeDeleted) params.set('includeDeleted', 'true');
+      const response = await fetch(`/api/courses?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -180,6 +222,7 @@ export default function AdminCoursesPage() {
       description: course.description,
       category: course.category,
       price: course.price.toString(),
+      show_price: course.show_price === undefined || course.show_price === null ? true : !!course.show_price,
       duration: course.duration,
       level: course.level,
       featured: course.featured,
@@ -196,6 +239,7 @@ export default function AdminCoursesPage() {
       description: '',
       category: '',
       price: '',
+      show_price: true,
       duration: '',
       level: 'beginner',
       featured: false,
@@ -219,6 +263,7 @@ export default function AdminCoursesPage() {
         description: formData.description,
         category: formData.category,
         price: parseFloat(formData.price) || 0,
+        show_price: !!formData.show_price,
         duration: formData.duration,
         level: formData.level,
         featured: formData.featured,
@@ -323,6 +368,29 @@ export default function AdminCoursesPage() {
               Manage your courses, pricing, and featured status
             </p>
             <div className="flex space-x-3">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <label className="flex items-center space-x-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={includeDeleted}
+                  onChange={(e) => setIncludeDeleted(e.target.checked)}
+                />
+                <span>Include deleted</span>
+              </label>
+              <button
+                onClick={fetchCourses}
+                className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500 transition-colors"
+              >
+                Refresh
+              </button>
               <button
                 onClick={handleCreate}
                 className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
@@ -380,7 +448,9 @@ export default function AdminCoursesPage() {
                     <p className="text-gray-600 mt-1">{course.description}</p>
                     <div className="flex items-center space-x-4 mt-2">
                       <span className="text-sm text-gray-500">Category: {course.category}</span>
-                      <span className="text-sm text-gray-500">Price: ₹{course.price.toLocaleString()}</span>
+                      {!!course.show_price && (
+                        <span className="text-sm text-gray-500">Price: ₹{course.price.toLocaleString()}</span>
+                      )}
                       <span className="text-sm text-gray-500">Duration: {course.duration}</span>
                       <span className="text-sm text-gray-500">Level: {course.level}</span>
                       <span className="text-sm text-gray-500">Modules: {course.modules}</span>
@@ -394,6 +464,14 @@ export default function AdminCoursesPage() {
                     >
                       Edit
                     </button>
+                    {course.deleted_at ? (
+                      <button
+                        onClick={() => handleRestore(course.id)}
+                        className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
+                      >
+                        Restore
+                      </button>
+                    ) : (
                     <button
                       onClick={() => toggleFeatured(course.id)}
                       className={`px-3 py-1 rounded text-sm ${
@@ -404,6 +482,7 @@ export default function AdminCoursesPage() {
                     >
                       {course.featured ? 'Unfeature' : 'Feature'}
                     </button>
+                    )}
                     <button
                       onClick={() => toggleStatus(course.id)}
                       className={`px-3 py-1 rounded text-sm ${
@@ -431,6 +510,11 @@ export default function AdminCoursesPage() {
                   }`}>
                     {course.status}
                   </span>
+                  {course.deleted_at && (
+                    <span className="text-sm px-2 py-1 bg-gray-200 text-gray-800 rounded">
+                      Deleted
+                    </span>
+                  )}
                   {course.featured && (
                     <span className="text-sm px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
                       Featured
@@ -516,6 +600,18 @@ export default function AdminCoursesPage() {
                       step="0.01"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
+                  </div>
+
+                  <div>
+                    <label className="flex items-center mt-7">
+                      <input
+                        type="checkbox"
+                        checked={formData.show_price}
+                        onChange={(e) => setFormData(prev => ({ ...prev, show_price: e.target.checked }))}
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Show price on website</span>
+                    </label>
                   </div>
 
                   <div>

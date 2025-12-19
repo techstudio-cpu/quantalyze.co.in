@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { verifyToken } from '@/lib/auth';
 
 // Create table if it doesn't exist (this will run on first API call)
 const ensureTableExists = async () => {
@@ -11,10 +12,12 @@ const ensureTableExists = async () => {
         description TEXT,
         category VARCHAR(100),
         price DECIMAL(10, 2),
+        show_price BOOLEAN DEFAULT TRUE,
         duration VARCHAR(50),
         level VARCHAR(50),
         featured BOOLEAN DEFAULT FALSE,
         status ENUM('active', 'inactive') DEFAULT 'active',
+        deleted_at TIMESTAMP NULL,
         modules INT DEFAULT 1,
         enrolled_students INT DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -26,21 +29,112 @@ const ensureTableExists = async () => {
   }
 };
 
+const ensureHistoryTableExists = async () => {
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS courses_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        course_id INT NOT NULL,
+        action VARCHAR(50) NOT NULL,
+        snapshot JSON NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_course_id (course_id),
+        INDEX idx_action (action),
+        INDEX idx_created_at (created_at)
+      )
+    `);
+  } catch (error) {
+    console.log('Courses history table may already exist:', error);
+  }
+};
+
+const ensureColumnsExist = async () => {
+  try {
+    const showPriceCheck = await query(`
+      SELECT COLUMN_NAME
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_NAME = 'courses'
+      AND COLUMN_NAME = 'show_price'
+      AND TABLE_SCHEMA = DATABASE()
+    `) as any[];
+
+    if (showPriceCheck.length === 0) {
+      await query('ALTER TABLE courses ADD COLUMN show_price BOOLEAN DEFAULT TRUE');
+    }
+
+    const deletedAtCheck = await query(`
+      SELECT COLUMN_NAME
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_NAME = 'courses'
+      AND COLUMN_NAME = 'deleted_at'
+      AND TABLE_SCHEMA = DATABASE()
+    `) as any[];
+
+    if (deletedAtCheck.length === 0) {
+      await query('ALTER TABLE courses ADD COLUMN deleted_at TIMESTAMP NULL');
+    }
+  } catch (error) {
+    console.log('Courses column check error:', error);
+  }
+};
+
+const isAdminRequest = (request: NextRequest) => {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
+  const token = authHeader.substring(7);
+  const verification = verifyToken(token);
+  return verification.valid;
+};
+
+const logHistory = async (courseId: number | string, action: string) => {
+  const idNum = typeof courseId === 'string' ? parseInt(courseId, 10) : courseId;
+  if (!idNum) return;
+
+  const rows = await query(
+    `SELECT id, title, description, category, price, show_price, duration, level, featured, status, deleted_at, modules, enrolled_students, created_at, updated_at
+     FROM courses WHERE id = ?`,
+    [idNum]
+  ) as any[];
+
+  if (!Array.isArray(rows) || rows.length === 0) return;
+  await query(
+    'INSERT INTO courses_history (course_id, action, snapshot) VALUES (?, ?, ?)',
+    [idNum, action, JSON.stringify(rows[0])]
+  );
+};
+
 export async function GET(request: NextRequest) {
   try {
     await ensureTableExists();
+    await ensureColumnsExist();
+    await ensureHistoryTableExists();
     
     const { searchParams } = new URL(request.url);
     const featured = searchParams.get('featured');
     const category = searchParams.get('category');
+    const status = searchParams.get('status');
+    const includeDeleted = searchParams.get('includeDeleted');
+    const isAdmin = isAdminRequest(request);
 
     let selectQuery = `
-      SELECT id, title, description, category, price, duration, level, featured, status, modules, enrolled_students, created_at, updated_at
+      SELECT id, title, description, category, price, show_price, duration, level, featured, status, deleted_at, modules, enrolled_students, created_at, updated_at
       FROM courses
-      WHERE status = 'active'
+      WHERE 1=1
     `;
     
     const params: any[] = [];
+
+    if (!isAdmin) {
+      selectQuery += " AND status = 'active' AND deleted_at IS NULL";
+    } else {
+      if (status && status !== 'all') {
+        selectQuery += ' AND status = ?';
+        params.push(status);
+      }
+      if (includeDeleted !== 'true') {
+        selectQuery += ' AND deleted_at IS NULL';
+      }
+    }
     
     if (featured === 'true') {
       selectQuery += ' AND featured = TRUE';
@@ -53,7 +147,13 @@ export async function GET(request: NextRequest) {
     
     selectQuery += ' ORDER BY featured DESC, created_at DESC';
 
-    const courses = await query(selectQuery, params);
+    const rows = await query(selectQuery, params) as any[];
+    const courses = Array.isArray(rows)
+      ? rows.map((c) => ({
+          ...c,
+          show_price: c.show_price === undefined || c.show_price === null ? true : !!c.show_price,
+        }))
+      : rows;
 
     return NextResponse.json({
       success: true,
@@ -77,9 +177,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await ensureTableExists();
+    await ensureColumnsExist();
+    await ensureHistoryTableExists();
     
     const body = await request.json();
-    const { title, description, category, price, duration, level, featured, modules } = body;
+    const { title, description, category, price, show_price, duration, level, featured, modules } = body;
 
     if (!title || !description) {
       return NextResponse.json(
@@ -90,8 +192,8 @@ export async function POST(request: NextRequest) {
 
     const insertQuery = `
       INSERT INTO courses 
-      (title, description, category, price, duration, level, featured, status, modules, enrolled_students, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?, 0, NOW(), NOW())
+      (title, description, category, price, show_price, duration, level, featured, status, deleted_at, modules, enrolled_students, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', NULL, ?, 0, NOW(), NOW())
     `;
     
     const result = await query(insertQuery, [
@@ -99,11 +201,14 @@ export async function POST(request: NextRequest) {
       description,
       category || null,
       price || null,
+      show_price !== undefined ? !!show_price : true,
       duration || null,
       level || null,
       featured || false,
       modules || 1
     ]) as any;
+
+    await logHistory(result.insertId, 'create');
 
     return NextResponse.json({
       success: true,
@@ -128,9 +233,11 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     await ensureTableExists();
+    await ensureColumnsExist();
+    await ensureHistoryTableExists();
     
     const body = await request.json();
-    const { id, featured, status, title, description, category, price, duration, level, modules } = body;
+    const { id, featured, status, title, description, category, price, show_price, duration, level, modules, restore } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -138,6 +245,15 @@ export async function PUT(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    if (restore === true) {
+      await logHistory(id, 'restore_before');
+      await query('UPDATE courses SET deleted_at = NULL, status = \'active\', updated_at = NOW() WHERE id = ?', [id]);
+      await logHistory(id, 'restore_after');
+      return NextResponse.json({ success: true, message: 'Course restored successfully' });
+    }
+
+    await logHistory(id, 'update_before');
 
     // Build dynamic update query
     const updateFields = [];
@@ -173,6 +289,11 @@ export async function PUT(request: NextRequest) {
       params.push(price);
     }
 
+    if (show_price !== undefined) {
+      updateFields.push('show_price = ?');
+      params.push(!!show_price);
+    }
+
     if (duration !== undefined) {
       updateFields.push('duration = ?');
       params.push(duration);
@@ -199,6 +320,8 @@ export async function PUT(request: NextRequest) {
     
     await query(updateQuery, params);
 
+    await logHistory(id, 'update_after');
+
     return NextResponse.json({
       success: true,
       message: 'Course updated successfully'
@@ -221,6 +344,8 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     await ensureTableExists();
+    await ensureColumnsExist();
+    await ensureHistoryTableExists();
     
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -232,8 +357,10 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const deleteQuery = 'DELETE FROM courses WHERE id = ?';
+    await logHistory(id, 'delete_before');
+    const deleteQuery = 'UPDATE courses SET deleted_at = NOW(), status = \'inactive\', updated_at = NOW() WHERE id = ?';
     await query(deleteQuery, [id]);
+    await logHistory(id, 'delete_after');
 
     return NextResponse.json({
       success: true,

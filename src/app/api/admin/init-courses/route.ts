@@ -7,6 +7,7 @@ const sampleCourses = [
     description: 'Learn the basics of web development including HTML, CSS, and JavaScript. Perfect for beginners.',
     category: 'Web Development',
     price: 9999,
+    show_price: true,
     duration: '8 weeks',
     level: 'Beginner',
     featured: true,
@@ -18,6 +19,7 @@ const sampleCourses = [
     description: 'Master React.js with advanced concepts, hooks, and best practices for building modern web applications.',
     category: 'Web Development',
     price: 14999,
+    show_price: true,
     duration: '10 weeks',
     level: 'Advanced',
     featured: true,
@@ -29,6 +31,7 @@ const sampleCourses = [
     description: 'Complete digital marketing course covering SEO, social media, content marketing, and analytics.',
     category: 'Marketing',
     price: 7999,
+    show_price: true,
     duration: '6 weeks',
     level: 'Intermediate',
     featured: false,
@@ -40,6 +43,7 @@ const sampleCourses = [
     description: 'Learn user interface and user experience design principles with hands-on projects.',
     category: 'Design',
     price: 11999,
+    show_price: true,
     duration: '8 weeks',
     level: 'Intermediate',
     featured: false,
@@ -51,6 +55,7 @@ const sampleCourses = [
     description: 'Comprehensive Python course focused on data science, machine learning, and data analysis.',
     category: 'Data Science',
     price: 19999,
+    show_price: true,
     duration: '12 weeks',
     level: 'Advanced',
     featured: true,
@@ -69,10 +74,12 @@ export async function POST(request: NextRequest) {
         description TEXT,
         category VARCHAR(100),
         price DECIMAL(10, 2),
+        show_price BOOLEAN DEFAULT TRUE,
         duration VARCHAR(50),
         level VARCHAR(50),
         featured BOOLEAN DEFAULT FALSE,
         status ENUM('active', 'inactive') DEFAULT 'active',
+        deleted_at TIMESTAMP NULL,
         modules INT DEFAULT 1,
         enrolled_students INT DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -94,13 +101,14 @@ export async function POST(request: NextRequest) {
     for (const course of sampleCourses) {
       await query(`
         INSERT INTO courses 
-        (title, description, category, price, duration, level, featured, status, modules, enrolled_students, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, NOW(), NOW())
+        (title, description, category, price, show_price, duration, level, featured, status, deleted_at, modules, enrolled_students, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', NULL, ?, ?, NOW(), NOW())
       `, [
         course.title,
         course.description,
         course.category,
         course.price,
+        course.show_price !== undefined ? !!course.show_price : true,
         course.duration,
         course.level,
         course.featured,

@@ -1,30 +1,44 @@
+"use client";
+
+import { useEffect, useState } from 'react';
+
+type Course = {
+  id: string;
+  title: string;
+  description: string;
+  category?: string;
+  price?: number;
+  show_price?: boolean;
+  duration?: string;
+  level?: string;
+};
+
 export default function CoursesPage() {
-  const courses = [
-    {
-      title: "Digital Marketing Course",
-      description: "Complete digital marketing training covering SEO, SMM, Google Ads, and more",
-      duration: "3 Months",
-      level: "Beginner to Advanced"
-    },
-    {
-      title: "SEO Masterclass",
-      description: "Learn advanced SEO techniques to rank websites on Google",
-      duration: "6 Weeks",
-      level: "Intermediate"
-    },
-    {
-      title: "Social Media Marketing",
-      description: "Master Facebook, Instagram, LinkedIn, and Twitter marketing",
-      duration: "4 Weeks",
-      level: "Beginner"
-    },
-    {
-      title: "Content Marketing",
-      description: "Create compelling content that drives engagement and conversions",
-      duration: "4 Weeks",
-      level: "Beginner"
-    }
-  ];
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadCourses = async () => {
+      try {
+        const response = await fetch('/api/courses', { cache: 'no-store' });
+        const data = await response.json();
+        if (mounted && data?.success && Array.isArray(data.courses)) {
+          setCourses(data.courses);
+        }
+      } catch {
+        // Keep page usable even if API fails
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    loadCourses();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <>
@@ -41,25 +55,46 @@ export default function CoursesPage() {
       {/* Courses Grid */}
       <section className="bg-white py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            {courses.map((course, idx) => (
-              <div key={idx} className="bg-white border border-yellow-200 rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300">
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">{course.title}</h3>
-                <p className="text-gray-700 mb-4">{course.description}</p>
-                <div className="flex flex-wrap gap-4 text-sm">
-                  <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-semibold">
-                    {course.duration}
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading courses...</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-8">
+              {(courses || []).map((course) => (
+                <div key={course.id} className="bg-white border border-yellow-200 rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{course.title}</h3>
+                  <p className="text-gray-700 mb-4">{course.description}</p>
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    {!!course.duration && (
+                      <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-semibold">
+                        {course.duration}
+                      </div>
+                    )}
+                    {!!course.level && (
+                      <div className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-semibold">
+                        {course.level}
+                      </div>
+                    )}
+                    {!!course.category && (
+                      <div className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-semibold">
+                        {course.category}
+                      </div>
+                    )}
+                    {!!course.show_price && course.price !== undefined && course.price !== null && (
+                      <div className="bg-yellow-100 text-yellow-900 px-3 py-1 rounded-full font-semibold">
+                        ₹{Number(course.price).toLocaleString()}
+                      </div>
+                    )}
                   </div>
-                  <div className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-semibold">
-                    {course.level}
-                  </div>
+                  <button className="mt-6 w-full bg-yellow-500 text-white py-3 rounded-lg font-semibold hover:bg-yellow-600 transition-colors">
+                    Enroll Now
+                  </button>
                 </div>
-                <button className="mt-6 w-full bg-yellow-500 text-white py-3 rounded-lg font-semibold hover:bg-yellow-600 transition-colors">
-                  Enroll Now
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
