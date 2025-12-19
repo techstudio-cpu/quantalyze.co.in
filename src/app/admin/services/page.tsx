@@ -11,8 +11,10 @@ interface Service {
   icon: string;
   category: string;
   price: number;
+  show_price?: boolean;
   featured: boolean;
   status: string;
+  deleted_at?: string | null;
   points: string[];
   sub_services: Array<{ name: string; href: string; description: string }>;
   created_at: string;
@@ -25,6 +27,8 @@ export default function AdminServicesPage() {
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [includeDeleted, setIncludeDeleted] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -33,6 +37,7 @@ export default function AdminServicesPage() {
     icon: '',
     category: '',
     price: '',
+    show_price: true,
     featured: false,
     status: 'active',
     points: [''],
@@ -49,6 +54,12 @@ export default function AdminServicesPage() {
       router.push('/admin');
     }
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchServices();
+    }
+  }, [isAuthenticated, statusFilter, includeDeleted]);
 
   const verifyToken = async (token: string) => {
     try {
@@ -80,7 +91,15 @@ export default function AdminServicesPage() {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/services');
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
+      const params = new URLSearchParams();
+      params.set('status', statusFilter);
+      if (includeDeleted) params.set('includeDeleted', 'true');
+      const response = await fetch(`/api/services?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -179,6 +198,7 @@ export default function AdminServicesPage() {
       icon: service.icon,
       category: service.category,
       price: service.price.toString(),
+      show_price: service.show_price !== false,
       featured: service.featured,
       status: service.status,
       points: service.points.length > 0 ? service.points : [''],
@@ -194,6 +214,7 @@ export default function AdminServicesPage() {
       icon: '',
       category: '',
       price: '',
+      show_price: true,
       featured: false,
       status: 'active',
       points: [''],
@@ -216,6 +237,7 @@ export default function AdminServicesPage() {
         icon: formData.icon,
         category: formData.category,
         price: parseFloat(formData.price) || 0,
+        show_price: !!formData.show_price,
         featured: formData.featured,
         status: formData.status,
         points: formData.points.filter(point => point.trim() !== ''),
@@ -279,6 +301,29 @@ export default function AdminServicesPage() {
       }
     } catch (error) {
       setError('Error deleting service');
+    }
+  };
+
+  const handleRestore = async (serviceId: string) => {
+    if (!confirm('Restore this service? It will be set to active.')) return;
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
+      const response = await fetch('/api/services', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: serviceId, restore: true })
+      });
+      const data = await response.json();
+      if (data.success) {
+        fetchServices();
+      } else {
+        setError(data.message || 'Failed to restore service');
+      }
+    } catch (error) {
+      setError('Error restoring service');
     }
   };
 
@@ -362,6 +407,29 @@ export default function AdminServicesPage() {
               Manage your services, pricing, and featured status
             </p>
             <div className="flex space-x-3">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <label className="flex items-center space-x-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={includeDeleted}
+                  onChange={(e) => setIncludeDeleted(e.target.checked)}
+                />
+                <span>Include deleted</span>
+              </label>
+              <button
+                onClick={fetchServices}
+                className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500 transition-colors"
+              >
+                Refresh
+              </button>
               <button
                 onClick={handleCreate}
                 className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
@@ -419,7 +487,9 @@ export default function AdminServicesPage() {
                     <p className="text-gray-600 mt-1">{service.description}</p>
                     <div className="flex items-center space-x-4 mt-2">
                       <span className="text-sm text-gray-500">Category: {service.category}</span>
-                      <span className="text-sm text-gray-500">Price: ₹{service.price.toLocaleString()}</span>
+                      {service.show_price !== false && (
+                        <span className="text-sm text-gray-500">Price: ₹{service.price.toLocaleString()}</span>
+                      )}
                       <span className={`text-sm px-2 py-1 rounded ${
                         service.status === 'active' 
                           ? 'bg-green-100 text-green-800' 
@@ -427,6 +497,11 @@ export default function AdminServicesPage() {
                       }`}>
                         {service.status}
                       </span>
+                      {service.deleted_at && (
+                        <span className="text-sm px-2 py-1 bg-gray-200 text-gray-800 rounded">
+                          Deleted
+                        </span>
+                      )}
                       {service.featured && (
                         <span className="text-sm px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
                           Featured
@@ -441,6 +516,14 @@ export default function AdminServicesPage() {
                     >
                       Edit
                     </button>
+                    {service.deleted_at ? (
+                      <button
+                        onClick={() => handleRestore(service.id)}
+                        className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
+                      >
+                        Restore
+                      </button>
+                    ) : (
                     <button
                       onClick={() => toggleFeatured(service.id)}
                       className={`px-3 py-1 rounded text-sm ${
@@ -451,6 +534,7 @@ export default function AdminServicesPage() {
                     >
                       {service.featured ? 'Unfeature' : 'Feature'}
                     </button>
+                    )}
                     <button
                       onClick={() => toggleStatus(service.id)}
                       className={`px-3 py-1 rounded text-sm ${
@@ -581,6 +665,18 @@ export default function AdminServicesPage() {
                       step="0.01"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
+                  </div>
+
+                  <div>
+                    <label className="flex items-center mt-7">
+                      <input
+                        type="checkbox"
+                        checked={formData.show_price}
+                        onChange={(e) => setFormData(prev => ({ ...prev, show_price: e.target.checked }))}
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Show price on website</span>
+                    </label>
                   </div>
 
                   <div>

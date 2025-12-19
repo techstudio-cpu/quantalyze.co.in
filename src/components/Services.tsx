@@ -12,6 +12,7 @@ type Service = {
   href: string;
   points: string[];
   price?: string;
+  showPrice?: boolean;
   subServices?: { name: string; href: string; description: string }[];
 };
 
@@ -231,6 +232,7 @@ export default function Services() {
             href: `/services/${service.id}`,
             points: service.points || [], // Add points field to database or use empty array
             price: service.price,
+            showPrice: service.show_price !== false,
             subServices: service.subServices || []
           }));
           setServices(mappedServices);
@@ -313,7 +315,7 @@ export default function Services() {
                       )}
 
                       <div className="flex items-center justify-between">
-                        {service.price && (
+                        {service.showPrice !== false && service.price && (
                           <span className="text-2xl font-bold text-gray-900">
                             ₹{parseInt(service.price).toLocaleString()}
                           </span>
