@@ -69,7 +69,7 @@ export async function authenticateAdmin(username: string, password: string): Pro
     }
 
     // Update last login
-    await run(
+    await query(
       'UPDATE admin_users SET last_login = CURRENT_TIMESTAMP WHERE id = ?',
       [user.id]
     );
