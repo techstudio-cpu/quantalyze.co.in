@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { query, run, initDatabase, getDatabaseType } from './unified-db';
+import { query, testConnection } from './db';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_EXPIRES_IN = '24h';
@@ -19,9 +19,12 @@ interface AdminUser {
 // Initialize admin user if not exists
 export async function initializeAdminUser() {
   try {
-    // Initialize database tables based on environment
-    await initDatabase();
-    console.log(`[Auth] Using ${getDatabaseType()} database`);
+    // Test database connection
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      console.log('[Auth] Database not available, skipping admin user initialization');
+      return;
+    }
 
     // Check if admin user exists
     const existingAdmin = await query(
@@ -33,7 +36,7 @@ export async function initializeAdminUser() {
       // Create default admin user
       const hashedPassword = await bcrypt.hash('Admin@123', 10);
       
-      await run(
+      await query(
         'INSERT INTO admin_users (username, email, password, role) VALUES (?, ?, ?, ?)',
         ['Admin', 'admin@quantalyze.co.in', hashedPassword, 'admin']
       );
@@ -127,7 +130,7 @@ export async function changeAdminPassword(userId: number, currentPassword: strin
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
     // Update password
-    await run(
+    await query(
       'UPDATE admin_users SET password = ? WHERE id = ?',
       [hashedNewPassword, userId]
     );
