@@ -16,6 +16,49 @@ const ensureTableExists = async () => {
   }
 };
 
+const ensureSlugColumnAndIndex = async () => {
+  // 1) Ensure slug column exists (nullable first to avoid backfill failures)
+  const slugColumnCheck = await query(`
+    SELECT COLUMN_NAME, IS_NULLABLE
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'content'
+      AND COLUMN_NAME = 'slug'
+      AND TABLE_SCHEMA = DATABASE()
+  `) as any[];
+
+  if (slugColumnCheck.length === 0) {
+    await query(`ALTER TABLE content ADD COLUMN slug VARCHAR(255) NULL`);
+  }
+
+  // 2) Backfill slug for existing rows (unique + non-empty)
+  // Use id to guarantee uniqueness.
+  await query(`
+    UPDATE content
+    SET slug = CONCAT('content-', id)
+    WHERE slug IS NULL OR slug = ''
+  `);
+
+  // 3) Ensure unique index exists (without relying on column definition)
+  const slugUniqueIndexCheck = await query(`
+    SELECT INDEX_NAME
+    FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE TABLE_NAME = 'content'
+      AND COLUMN_NAME = 'slug'
+      AND NON_UNIQUE = 0
+      AND TABLE_SCHEMA = DATABASE()
+  `) as any[];
+
+  if (slugUniqueIndexCheck.length === 0) {
+    await query(`ALTER TABLE content ADD UNIQUE INDEX uniq_content_slug (slug)`);
+  }
+
+  // 4) Make slug NOT NULL after backfill (optional but matches API expectations)
+  const slugNullable = slugColumnCheck.length > 0 ? slugColumnCheck[0]?.IS_NULLABLE === 'YES' : true;
+  if (slugNullable) {
+    await query(`ALTER TABLE content MODIFY COLUMN slug VARCHAR(255) NOT NULL`);
+  }
+};
+
 // Check if columns exist and add them if needed
 const ensureColumnsExist = async () => {
   try {
@@ -24,7 +67,6 @@ const ensureColumnsExist = async () => {
       { name: 'title', type: 'VARCHAR(255) NOT NULL' },
       { name: 'type', type: 'VARCHAR(50) NOT NULL' },
       { name: 'category', type: 'VARCHAR(100)' },
-      { name: 'slug', type: 'VARCHAR(255) NOT NULL UNIQUE' },
       { name: 'body', type: 'TEXT' },
       { name: 'status', type: "ENUM('draft', 'published', 'archived') DEFAULT 'draft'" },
       { name: 'published_at', type: 'TIMESTAMP NULL' }
@@ -43,6 +85,9 @@ const ensureColumnsExist = async () => {
         await query(`ALTER TABLE content ADD COLUMN ${column.name} ${column.type}`);
       }
     }
+
+    // slug needs special handling (backfill + unique index)
+    await ensureSlugColumnAndIndex();
   } catch (error) {
     console.log('Column check error:', error);
   }
