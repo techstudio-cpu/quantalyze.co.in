@@ -26,6 +26,21 @@ export default function AdminCoursesPage() {
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: '',
+    price: '',
+    duration: '',
+    level: 'beginner',
+    featured: false,
+    status: 'active',
+    modules: 1,
+    enrolled_students: 0
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -158,6 +173,120 @@ export default function AdminCoursesPage() {
     }
   };
 
+  const handleEdit = (course: Course) => {
+    setEditingCourse(course);
+    setFormData({
+      title: course.title,
+      description: course.description,
+      category: course.category,
+      price: course.price.toString(),
+      duration: course.duration,
+      level: course.level,
+      featured: course.featured,
+      status: course.status,
+      modules: course.modules,
+      enrolled_students: course.enrolled_students
+    });
+  };
+
+  const handleCreate = () => {
+    setEditingCourse(null);
+    setFormData({
+      title: '',
+      description: '',
+      category: '',
+      price: '',
+      duration: '',
+      level: 'beginner',
+      featured: false,
+      status: 'active',
+      modules: 1,
+      enrolled_students: 0
+    });
+    setShowCreateForm(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
+      
+      const submissionData = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        price: parseFloat(formData.price) || 0,
+        duration: formData.duration,
+        level: formData.level,
+        featured: formData.featured,
+        status: formData.status,
+        modules: parseInt(formData.modules.toString()) || 1,
+        enrolled_students: parseInt(formData.enrolled_students.toString()) || 0
+      };
+
+      const url = editingCourse ? '/api/courses' : '/api/courses';
+      const method = editingCourse ? 'PUT' : 'POST';
+      
+      if (editingCourse) {
+        submissionData.id = editingCourse.id;
+      }
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(submissionData)
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setEditingCourse(null);
+        setShowCreateForm(false);
+        fetchCourses();
+      } else {
+        setError(data.message || 'Failed to save course');
+      }
+    } catch (error) {
+      setError('Error saving course');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (courseId: string) => {
+    if (!confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
+      
+      const response = await fetch(`/api/courses?id=${courseId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        fetchCourses();
+      } else {
+        setError(data.message || 'Failed to delete course');
+      }
+    } catch (error) {
+      setError('Error deleting course');
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -193,13 +322,21 @@ export default function AdminCoursesPage() {
             <p className="text-gray-600">
               Manage your courses, pricing, and featured status
             </p>
-            <button
-              onClick={initializeCourses}
-              disabled={isInitializing}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-400"
-            >
-              {isInitializing ? 'Initializing...' : 'Initialize Courses'}
-            </button>
+            <div className="flex space-x-3">
+              <button
+                onClick={handleCreate}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Add New Course
+              </button>
+              <button
+                onClick={initializeCourses}
+                disabled={isInitializing}
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-400"
+              >
+                {isInitializing ? 'Initializing...' : 'Initialize Courses'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -252,6 +389,12 @@ export default function AdminCoursesPage() {
                   </div>
                   <div className="flex space-x-2">
                     <button
+                      onClick={() => handleEdit(course)}
+                      className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
                       onClick={() => toggleFeatured(course.id)}
                       className={`px-3 py-1 rounded text-sm ${
                         course.featured
@@ -270,6 +413,12 @@ export default function AdminCoursesPage() {
                       } transition-colors`}
                     >
                       {course.status === 'active' ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(course.id)}
+                      className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors"
+                    >
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -297,6 +446,186 @@ export default function AdminCoursesPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {(editingCourse || showCreateForm) && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                {editingCourse ? 'Edit Course' : 'Create New Course'}
+              </h2>
+              
+              {error && (
+                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Category
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.category}
+                      onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description *
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Price (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.price}
+                      onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                      min="0"
+                      step="0.01"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Duration
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.duration}
+                      onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
+                      placeholder="e.g., 6 weeks, 3 months"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Level
+                    </label>
+                    <select
+                      value={formData.level}
+                      onChange={(e) => setFormData(prev => ({ ...prev, level: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                      <option value="all">All Levels</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Modules
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.modules}
+                      onChange={(e) => setFormData(prev => ({ ...prev, modules: parseInt(e.target.value) || 1 }))}
+                      min="1"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.featured}
+                        onChange={(e) => setFormData(prev => ({ ...prev, featured: e.target.checked }))}
+                        className="mr-2"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Featured Course</span>
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Enrolled Students
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.enrolled_students}
+                      onChange={(e) => setFormData(prev => ({ ...prev, enrolled_students: parseInt(e.target.value) || 0 }))}
+                      min="0"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingCourse(null);
+                      setShowCreateForm(false);
+                      setError('');
+                    }}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Saving...' : (editingCourse ? 'Update Course' : 'Create Course')}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
       </div>

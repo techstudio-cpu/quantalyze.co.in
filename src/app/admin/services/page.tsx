@@ -25,6 +25,20 @@ export default function AdminServicesPage() {
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    icon: '',
+    category: '',
+    price: '',
+    featured: false,
+    status: 'active',
+    points: [''],
+    sub_services: [{ name: '', href: '', description: '' }]
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -157,6 +171,161 @@ export default function AdminServicesPage() {
     }
   };
 
+  const handleEdit = (service: Service) => {
+    setEditingService(service);
+    setFormData({
+      title: service.title,
+      description: service.description,
+      icon: service.icon,
+      category: service.category,
+      price: service.price.toString(),
+      featured: service.featured,
+      status: service.status,
+      points: service.points.length > 0 ? service.points : [''],
+      sub_services: service.sub_services.length > 0 ? service.sub_services : [{ name: '', href: '', description: '' }]
+    });
+  };
+
+  const handleCreate = () => {
+    setEditingService(null);
+    setFormData({
+      title: '',
+      description: '',
+      icon: '',
+      category: '',
+      price: '',
+      featured: false,
+      status: 'active',
+      points: [''],
+      sub_services: [{ name: '', href: '', description: '' }]
+    });
+    setShowCreateForm(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
+      
+      const submissionData = {
+        title: formData.title,
+        description: formData.description,
+        icon: formData.icon,
+        category: formData.category,
+        price: parseFloat(formData.price) || 0,
+        featured: formData.featured,
+        status: formData.status,
+        points: formData.points.filter(point => point.trim() !== ''),
+        sub_services: formData.sub_services.filter(sub => sub.name.trim() !== '')
+      };
+
+      const url = editingService ? '/api/services' : '/api/services';
+      const method = editingService ? 'PUT' : 'POST';
+      
+      if (editingService) {
+        submissionData.id = editingService.id;
+      }
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(submissionData)
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setEditingService(null);
+        setShowCreateForm(false);
+        fetchServices();
+      } else {
+        setError(data.message || 'Failed to save service');
+      }
+    } catch (error) {
+      setError('Error saving service');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (serviceId: string) => {
+    if (!confirm('Are you sure you want to delete this service? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
+      
+      const response = await fetch(`/api/services?id=${serviceId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        fetchServices();
+      } else {
+        setError(data.message || 'Failed to delete service');
+      }
+    } catch (error) {
+      setError('Error deleting service');
+    }
+  };
+
+  const addPoint = () => {
+    setFormData(prev => ({
+      ...prev,
+      points: [...prev.points, '']
+    }));
+  };
+
+  const removePoint = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      points: prev.points.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updatePoint = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      points: prev.points.map((point, i) => i === index ? value : point)
+    }));
+  };
+
+  const addSubService = () => {
+    setFormData(prev => ({
+      ...prev,
+      sub_services: [...prev.sub_services, { name: '', href: '', description: '' }]
+    }));
+  };
+
+  const removeSubService = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      sub_services: prev.sub_services.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateSubService = (index: number, field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      sub_services: prev.sub_services.map((sub, i) => 
+        i === index ? { ...sub, [field]: value } : sub
+      )
+    }));
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -192,13 +361,21 @@ export default function AdminServicesPage() {
             <p className="text-gray-600">
               Manage your services, pricing, and featured status
             </p>
-            <button
-              onClick={initializeServices}
-              disabled={isInitializing}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-400"
-            >
-              {isInitializing ? 'Initializing...' : 'Initialize Services'}
-            </button>
+            <div className="flex space-x-3">
+              <button
+                onClick={handleCreate}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Add New Service
+              </button>
+              <button
+                onClick={initializeServices}
+                disabled={isInitializing}
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-400"
+              >
+                {isInitializing ? 'Initializing...' : 'Initialize Services'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -259,6 +436,12 @@ export default function AdminServicesPage() {
                   </div>
                   <div className="flex space-x-2">
                     <button
+                      onClick={() => handleEdit(service)}
+                      className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
                       onClick={() => toggleFeatured(service.id)}
                       className={`px-3 py-1 rounded text-sm ${
                         service.featured
@@ -277,6 +460,12 @@ export default function AdminServicesPage() {
                       } transition-colors`}
                     >
                       {service.status === 'active' ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(service.id)}
+                      className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors"
+                    >
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -322,6 +511,226 @@ export default function AdminServicesPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {(editingService || showCreateForm) && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                {editingService ? 'Edit Service' : 'Create New Service'}
+              </h2>
+              
+              {error && (
+                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Category
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.category}
+                      onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description *
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Price (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.price}
+                      onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                      min="0"
+                      step="0.01"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Icon
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.icon}
+                      onChange={(e) => setFormData(prev => ({ ...prev, icon: e.target.value }))}
+                      placeholder="e.g., chart-line"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.featured}
+                      onChange={(e) => setFormData(prev => ({ ...prev, featured: e.target.checked }))}
+                      className="mr-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Featured Service</span>
+                  </label>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Key Points
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addPoint}
+                      className="text-blue-600 hover:text-blue-800 text-sm"
+                    >
+                      + Add Point
+                    </button>
+                  </div>
+                  {formData.points.map((point, index) => (
+                    <div key={index} className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        value={point}
+                        onChange={(e) => updatePoint(index, e.target.value)}
+                        placeholder="Enter key point"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      {formData.points.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removePoint(index)}
+                          className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Sub-Services
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addSubService}
+                      className="text-blue-600 hover:text-blue-800 text-sm"
+                    >
+                      + Add Sub-Service
+                    </button>
+                  </div>
+                  {formData.sub_services.map((subService, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4 mb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                        <input
+                          type="text"
+                          value={subService.name}
+                          onChange={(e) => updateSubService(index, 'name', e.target.value)}
+                          placeholder="Sub-service name"
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <input
+                          type="url"
+                          value={subService.href}
+                          onChange={(e) => updateSubService(index, 'href', e.target.value)}
+                          placeholder="URL (e.g., /service-name)"
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <textarea
+                        value={subService.description}
+                        onChange={(e) => updateSubService(index, 'description', e.target.value)}
+                        placeholder="Sub-service description"
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      {formData.sub_services.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeSubService(index)}
+                          className="mt-2 px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
+                        >
+                          Remove Sub-Service
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingService(null);
+                      setShowCreateForm(false);
+                      setError('');
+                    }}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Saving...' : (editingService ? 'Update Service' : 'Create Service')}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
       </div>
