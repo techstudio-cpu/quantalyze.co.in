@@ -214,7 +214,7 @@ export default function AdminCoursesPage() {
     try {
       const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
       
-      const submissionData = {
+      const submissionData: any = {
         title: formData.title,
         description: formData.description,
         category: formData.category,

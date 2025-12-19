@@ -210,7 +210,7 @@ export default function AdminServicesPage() {
     try {
       const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
       
-      const submissionData = {
+      const submissionData: any = {
         title: formData.title,
         description: formData.description,
         icon: formData.icon,
