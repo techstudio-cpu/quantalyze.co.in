@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { query } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -92,10 +93,33 @@ export default async function ServiceDetailsPage({ params }: { params: Promise<{
               <h2 className="text-lg font-semibold text-gray-900 mb-3">Sub-services</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {subServices.map((s, idx) => (
-                  <div key={idx} className="border border-gray-200 rounded-xl p-4 bg-gray-50">
-                    <div className="font-semibold text-gray-900">{s.name}</div>
-                    {s.description && <div className="text-sm text-gray-700 mt-1">{s.description}</div>}
-                    {s.href && <div className="text-sm text-blue-700 mt-2">{s.href}</div>}
+                  <div key={idx} className="border border-gray-200 rounded-xl bg-gray-50">
+                    {s.href ? (
+                      s.href.startsWith('http') ? (
+                        <a
+                          href={s.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block p-4 hover:bg-gray-100 transition-colors rounded-xl"
+                        >
+                          <div className="font-semibold text-gray-900">{s.name}</div>
+                          {s.description && <div className="text-sm text-gray-700 mt-1">{s.description}</div>}
+                        </a>
+                      ) : (
+                        <Link
+                          href={s.href}
+                          className="block p-4 hover:bg-gray-100 transition-colors rounded-xl"
+                        >
+                          <div className="font-semibold text-gray-900">{s.name}</div>
+                          {s.description && <div className="text-sm text-gray-700 mt-1">{s.description}</div>}
+                        </Link>
+                      )
+                    ) : (
+                      <div className="p-4">
+                        <div className="font-semibold text-gray-900">{s.name}</div>
+                        {s.description && <div className="text-sm text-gray-700 mt-1">{s.description}</div>}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

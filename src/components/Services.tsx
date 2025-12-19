@@ -301,14 +301,30 @@ export default function Services() {
                         <div className="mb-6 space-y-2">
                           <h4 className="font-semibold text-gray-900 mb-2">Sub-Services:</h4>
                           {service.subServices!.map((subService, index) => (
-                            <div key={index} className="bg-gray-50 p-3 rounded-lg">
-                              <Link
-                                href={subService.href || '#'}
-                                className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                              >
-                                {subService.name}
-                              </Link>
-                              <p className="text-gray-600 text-xs mt-1">{subService.description}</p>
+                            <div key={index} className="bg-gray-50 rounded-lg">
+                              {subService.href?.startsWith('http') ? (
+                                <a
+                                  href={subService.href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block p-3 hover:bg-gray-100 transition-colors rounded-lg"
+                                >
+                                  <div className="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                                    {subService.name}
+                                  </div>
+                                  <p className="text-gray-600 text-xs mt-1">{subService.description}</p>
+                                </a>
+                              ) : (
+                                <Link
+                                  href={subService.href || '#'}
+                                  className="block p-3 hover:bg-gray-100 transition-colors rounded-lg"
+                                >
+                                  <div className="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                                    {subService.name}
+                                  </div>
+                                  <p className="text-gray-600 text-xs mt-1">{subService.description}</p>
+                                </Link>
+                              )}
                             </div>
                           ))}
                         </div>
