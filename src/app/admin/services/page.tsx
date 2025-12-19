@@ -198,7 +198,7 @@ export default function AdminServicesPage() {
       icon: service.icon,
       category: service.category,
       price: service.price.toString(),
-      show_price: service.show_price !== false,
+      show_price: service.show_price === undefined || service.show_price === null ? true : !!service.show_price,
       featured: service.featured,
       status: service.status,
       points: service.points.length > 0 ? service.points : [''],
@@ -487,7 +487,7 @@ export default function AdminServicesPage() {
                     <p className="text-gray-600 mt-1">{service.description}</p>
                     <div className="flex items-center space-x-4 mt-2">
                       <span className="text-sm text-gray-500">Category: {service.category}</span>
-                      {service.show_price !== false && (
+                      {!!service.show_price && (
                         <span className="text-sm text-gray-500">Price: ₹{service.price.toLocaleString()}</span>
                       )}
                       <span className={`text-sm px-2 py-1 rounded ${

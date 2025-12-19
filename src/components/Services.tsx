@@ -232,7 +232,7 @@ export default function Services() {
             href: `/services/${service.id}`,
             points: service.points || [], // Add points field to database or use empty array
             price: service.price,
-            showPrice: service.show_price !== false,
+            showPrice: service.show_price === undefined || service.show_price === null ? true : !!service.show_price,
             subServices: service.subServices || []
           }));
           setServices(mappedServices);
@@ -315,7 +315,7 @@ export default function Services() {
                       )}
 
                       <div className="flex items-center justify-between">
-                        {service.showPrice !== false && service.price && (
+                        {!!service.showPrice && service.price && (
                           <span className="text-2xl font-bold text-gray-900">
                             ₹{parseInt(service.price).toLocaleString()}
                           </span>

@@ -173,7 +173,13 @@ export async function GET(request: NextRequest) {
     
     selectQuery += ' ORDER BY featured DESC, created_at DESC';
 
-    const services = await query(selectQuery, params);
+    const rows = await query(selectQuery, params) as any[];
+    const services = Array.isArray(rows)
+      ? rows.map((s) => ({
+          ...s,
+          show_price: s.show_price === undefined || s.show_price === null ? true : !!s.show_price,
+        }))
+      : rows;
 
     return NextResponse.json({
       success: true,
