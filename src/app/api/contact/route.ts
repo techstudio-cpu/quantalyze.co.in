@@ -109,7 +109,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const limitParam = searchParams.get('limit');
-    const limit = limitParam ? parseInt(limitParam, 10) : 50;
+    const parsedLimit = limitParam ? parseInt(limitParam, 10) : 50;
+    const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 1000) : 50;
 
     let selectQuery = `
       SELECT id, name, email, phone, company, service_interest, message, status, created_at
@@ -124,21 +125,12 @@ export async function GET(request: NextRequest) {
     }
     
     selectQuery += ' ORDER BY created_at DESC';
-    
-    if (limit > 0 && limit < 1000) { // Safety check
-      selectQuery += ' LIMIT ?';
-      params.push(limit);
-    }
 
-    // Handle case where parameters might not work with LIMIT
-    let submissions;
-    if (params.length > 0 && limit > 0) {
-      submissions = await query(selectQuery, params);
-    } else if (limit > 0) {
-      submissions = await query(selectQuery + ` LIMIT ${limit}`);
-    } else {
-      submissions = await query(selectQuery);
-    }
+    // IMPORTANT: Some MySQL environments can error on prepared statements with LIMIT ?
+    // Always inline a sanitized integer limit.
+    selectQuery += ` LIMIT ${limit}`;
+
+    const submissions = await query(selectQuery, params);
 
     return NextResponse.json({
       success: true,
