@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { verifyToken } from '@/lib/auth';
 
 // Create table if it doesn't exist (this will run on first API call)
 const ensureTableExists = async () => {
@@ -14,6 +15,77 @@ const ensureTableExists = async () => {
   } catch (error) {
     console.log('Content table may already exist:', error);
   }
+};
+
+const ensureManagedContentTables = async () => {
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS managed_content_blocks (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        section VARCHAR(100) NOT NULL,
+        component VARCHAR(100) NOT NULL,
+        field VARCHAR(100) NOT NULL,
+        value TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uniq_section_component_field (section, component, field),
+        INDEX idx_section (section)
+      )
+    `);
+
+    await query(`
+      CREATE TABLE IF NOT EXISTS managed_content_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        section VARCHAR(100) NOT NULL,
+        action VARCHAR(50) NOT NULL,
+        snapshot JSON NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_section (section),
+        INDEX idx_action (action),
+        INDEX idx_created_at (created_at)
+      )
+    `);
+  } catch (error) {
+    console.log('Managed content tables may already exist:', error);
+  }
+};
+
+const isAdminRequest = (request: NextRequest) => {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
+  const token = authHeader.substring(7);
+  const verification = verifyToken(token);
+  return verification.valid;
+};
+
+const logManagedContentHistory = async (section: string, action: string) => {
+  const rows = await query(
+    'SELECT section, component, field, value FROM managed_content_blocks WHERE section = ? ORDER BY component, field',
+    [section]
+  ) as any[];
+
+  await query(
+    'INSERT INTO managed_content_history (section, action, snapshot) VALUES (?, ?, ?)',
+    [section, action, JSON.stringify(rows || [])]
+  );
+};
+
+const getManagedSectionData = async (section: string) => {
+  const rows = await query(
+    'SELECT component, field, value FROM managed_content_blocks WHERE section = ?',
+    [section]
+  ) as any[];
+
+  const data: Record<string, Record<string, string>> = {};
+  if (Array.isArray(rows)) {
+    for (const r of rows) {
+      const comp = String(r.component || 'default');
+      const field = String(r.field || 'value');
+      if (!data[comp]) data[comp] = {};
+      data[comp][field] = r.value ?? '';
+    }
+  }
+  return data;
 };
 
 const ensureSlugColumnAndIndex = async () => {
@@ -97,18 +169,39 @@ export async function GET(request: NextRequest) {
   try {
     await ensureTableExists();
     await ensureColumnsExist();
+    await ensureManagedContentTables();
     
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
     const section = searchParams.get('section');
+    const key = searchParams.get('key');
 
     if (section) {
-      // For existing functionality - return empty data since managed content system is not fully implemented
+      const data = await getManagedSectionData(section);
       return NextResponse.json({
         success: true,
-        data: {},
-        message: 'No managed content found - using defaults'
+        data,
       });
+    }
+
+    // Support legacy getContent(key) usage (single value)
+    if (key) {
+      // Accept either section.component.field or section:component:field
+      const parts = key.includes('.') ? key.split('.') : key.split(':');
+      if (parts.length >= 3) {
+        const [kSection, kComponent, ...rest] = parts;
+        const kField = rest.join('.') || 'value';
+        const rows = await query(
+          'SELECT value FROM managed_content_blocks WHERE section = ? AND component = ? AND field = ? LIMIT 1',
+          [kSection, kComponent, kField]
+        ) as any[];
+        const value = Array.isArray(rows) && rows[0]?.value !== undefined ? rows[0].value : null;
+        if (value === null) {
+          return NextResponse.json({ value: null });
+        }
+        return NextResponse.json({ value: String(value) });
+      }
+      return NextResponse.json({ value: null });
     }
 
     let selectQuery = `
@@ -150,9 +243,39 @@ export async function POST(request: NextRequest) {
   try {
     await ensureTableExists();
     await ensureColumnsExist();
+    await ensureManagedContentTables();
     
     const body = await request.json();
-    const { title, type, category, slug, content: bodyContent } = body;
+    const { section, data, title, type, category, slug, content: bodyContent } = body;
+
+    // Managed content upsert
+    if (section && data) {
+      if (!isAdminRequest(request)) {
+        return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      }
+
+      await logManagedContentHistory(section, 'upsert_before');
+
+      const entries: Array<{ component: string; field: string; value: string }> = [];
+      for (const component of Object.keys(data || {})) {
+        const fields = data[component] || {};
+        for (const field of Object.keys(fields)) {
+          entries.push({ component, field, value: String(fields[field] ?? '') });
+        }
+      }
+
+      for (const e of entries) {
+        await query(
+          `INSERT INTO managed_content_blocks (section, component, field, value)
+           VALUES (?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE value = VALUES(value), updated_at = NOW()`,
+          [section, e.component, e.field, e.value]
+        );
+      }
+
+      await logManagedContentHistory(section, 'upsert_after');
+      return NextResponse.json({ success: true, message: 'Managed content saved', section });
+    }
 
     if (!title || !type || !slug) {
       return NextResponse.json(
@@ -199,9 +322,45 @@ export async function PUT(request: NextRequest) {
   try {
     await ensureTableExists();
     await ensureColumnsExist();
+    await ensureManagedContentTables();
     
     const body = await request.json();
-    const { id, status, title, type, category, slug, content: bodyContent } = body;
+    const { id, status, title, type, category, slug, content: bodyContent, section, restoreHistoryId } = body;
+
+    // Managed content restore
+    if (section && restoreHistoryId) {
+      if (!isAdminRequest(request)) {
+        return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      }
+
+      const historyRows = await query(
+        'SELECT snapshot FROM managed_content_history WHERE id = ? AND section = ? LIMIT 1',
+        [restoreHistoryId, section]
+      ) as any[];
+
+      if (!Array.isArray(historyRows) || historyRows.length === 0) {
+        return NextResponse.json({ success: false, message: 'History not found' }, { status: 404 });
+      }
+
+      const snapshotRaw = historyRows[0].snapshot;
+      const snapshot = typeof snapshotRaw === 'string' ? JSON.parse(snapshotRaw) : snapshotRaw;
+
+      await logManagedContentHistory(section, 'restore_before');
+
+      // Replace section contents
+      await query('DELETE FROM managed_content_blocks WHERE section = ?', [section]);
+      if (Array.isArray(snapshot)) {
+        for (const row of snapshot) {
+          await query(
+            'INSERT INTO managed_content_blocks (section, component, field, value) VALUES (?, ?, ?, ?)',
+            [section, row.component, row.field, row.value]
+          );
+        }
+      }
+
+      await logManagedContentHistory(section, 'restore_after');
+      return NextResponse.json({ success: true, message: 'Managed content restored' });
+    }
 
     if (!id) {
       return NextResponse.json(
