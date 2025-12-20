@@ -3,43 +3,94 @@
 import Link from "next/link";
 import { FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaYoutube, FaHeart } from "react-icons/fa";
 import { Link as ScrollLink } from "react-scroll";
+import { useEffect, useMemo, useState } from "react";
+
+type FooterLink = { name: string; href: string };
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
-  const footerLinks = {
-    company: [
-      { name: "About Us", href: "/about/" },
-      { name: "Our Team", href: "/about/" },
-      { name: "Careers", href: "/about/" },
-      { name: "Contact", href: "/contact/" },
-    ],
-    services: [
-      { name: "Digital Marketing", href: "/services/" },
-      { name: "Web Development", href: "/services/" },
-      { name: "SEO Services", href: "/services/" },
-      { name: "Brand Strategy", href: "/services/" },
-    ],
-    resources: [
-      { name: "Blog", href: "/" },
-      { name: "Testimonials", href: "/testimonials/" },
-      { name: "FAQ", href: "/" },
-    ],
-    legal: [
-      { name: "Privacy Policy", href: "/privacy-policy/" },
-      { name: "Terms & Conditions", href: "/terms-and-conditions/" },
-      { name: "Disclaimer", href: "/disclaimer/" },
-      { name: "Cookie Policy", href: "/" },
-    ],
+  const defaultFooterSettings = {
+    brandText:
+      "Your trusted partner in digital transformation. We help brands connect with their audience through innovative marketing strategies and cutting-edge technology.",
+    socials: {
+      instagram: "https://www.instagram.com/quantalyze/",
+      linkedin: "https://www.linkedin.com/company/elevatia-private-limited/",
+      facebook: "https://facebook.com",
+      twitter: "https://twitter.com",
+      youtube: "https://youtube.com",
+    },
+    links: {
+      company: [
+        { name: "About Us", href: "/about/" },
+        { name: "Our Team", href: "/about/" },
+        { name: "Careers", href: "/about/" },
+        { name: "Contact", href: "/contact/" },
+      ],
+      services: [
+        { name: "Digital Marketing", href: "/services/" },
+        { name: "Web Development", href: "/services/" },
+        { name: "SEO Services", href: "/services/" },
+        { name: "Brand Strategy", href: "/services/" },
+      ],
+      resources: [
+        { name: "Blog", href: "/" },
+        { name: "Testimonials", href: "/testimonials/" },
+        { name: "FAQ", href: "/" },
+      ],
+      legal: [
+        { name: "Privacy Policy", href: "/privacy-policy/" },
+        { name: "Terms & Conditions", href: "/terms-and-conditions/" },
+        { name: "Disclaimer", href: "/disclaimer/" },
+        { name: "Cookie Policy", href: "/" },
+      ],
+    },
+    newsletterCta: {
+      title: "Subscribe to Our Newsletter",
+      subtitle: "Get the latest updates and insights delivered to your inbox.",
+      buttonText: "Subscribe Now",
+    },
+    technologyPartner: {
+      label: "Technology Partner:",
+      name: "Tech Studio",
+      url: "https://techstudio.co.in",
+    },
   };
 
-  const socialLinks = [
-    { name: "Instagram", icon: FaInstagram, href: "https://www.instagram.com/quantalyze/", color: "hover:text-pink-600" },
-    { name: "LinkedIn", icon: FaLinkedin, href: "https://www.linkedin.com/company/elevatia-private-limited/", color: "hover:text-blue-700" },
-    { name: "Facebook", icon: FaFacebook, href: "https://facebook.com", color: "hover:text-blue-600" },
-    { name: "Twitter", icon: FaTwitter, href: "https://twitter.com", color: "hover:text-blue-400" },
-    { name: "YouTube", icon: FaYoutube, href: "https://youtube.com", color: "hover:text-red-600" },
-  ];
+  const [footerSettings, setFooterSettings] = useState<any>(defaultFooterSettings);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch("/api/site-settings?scope=footer");
+        const data = await response.json();
+        if (data?.success && data?.settings) {
+          setFooterSettings(data.settings);
+        }
+      } catch {
+        setFooterSettings(defaultFooterSettings);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
+  const footerLinks = footerSettings?.links || defaultFooterSettings.links;
+  const companyLinks: FooterLink[] = Array.isArray(footerLinks?.company) ? (footerLinks.company as FooterLink[]) : defaultFooterSettings.links.company;
+  const servicesLinks: FooterLink[] = Array.isArray(footerLinks?.services) ? (footerLinks.services as FooterLink[]) : defaultFooterSettings.links.services;
+  const resourcesLinks: FooterLink[] = Array.isArray(footerLinks?.resources) ? (footerLinks.resources as FooterLink[]) : defaultFooterSettings.links.resources;
+  const legalLinks: FooterLink[] = Array.isArray(footerLinks?.legal) ? (footerLinks.legal as FooterLink[]) : defaultFooterSettings.links.legal;
+
+  const socialLinks = useMemo(() => {
+    const socials = footerSettings?.socials || defaultFooterSettings.socials;
+    return [
+      { name: "Instagram", icon: FaInstagram, href: socials.instagram, color: "hover:text-pink-600" },
+      { name: "LinkedIn", icon: FaLinkedin, href: socials.linkedin, color: "hover:text-blue-700" },
+      { name: "Facebook", icon: FaFacebook, href: socials.facebook, color: "hover:text-blue-600" },
+      { name: "Twitter", icon: FaTwitter, href: socials.twitter, color: "hover:text-blue-400" },
+      { name: "YouTube", icon: FaYoutube, href: socials.youtube, color: "hover:text-red-600" },
+    ].filter((s) => Boolean(s.href));
+  }, [footerSettings]);
 
   return (
     <footer className="bg-white border-t-2 border-yellow-300">
@@ -57,7 +108,7 @@ export default function Footer() {
               />
             </Link>
             <p className="text-gray-700 mb-6 leading-relaxed">
-              Your trusted partner in digital transformation. We help brands connect with their audience through innovative marketing strategies and cutting-edge technology.
+              {footerSettings?.brandText || defaultFooterSettings.brandText}
             </p>
             
             {/* Social Links */}
@@ -81,7 +132,7 @@ export default function Footer() {
           <div>
             <h4 className="text-gray-900 font-bold text-lg mb-4">Company</h4>
             <ul className="space-y-3">
-              {footerLinks.company.map((link) => (
+              {companyLinks.map((link: FooterLink) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
@@ -98,7 +149,7 @@ export default function Footer() {
           <div>
             <h4 className="text-gray-900 font-bold text-lg mb-4">Services</h4>
             <ul className="space-y-3">
-              {footerLinks.services.map((link) => (
+              {servicesLinks.map((link: FooterLink) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
@@ -115,7 +166,7 @@ export default function Footer() {
           <div>
             <h4 className="text-gray-900 font-bold text-lg mb-4">Resources</h4>
             <ul className="space-y-3">
-              {footerLinks.resources.map((link) => (
+              {resourcesLinks.map((link: FooterLink) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
@@ -133,8 +184,8 @@ export default function Footer() {
         <div className="mt-12 pt-8 border-t border-yellow-200">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="mb-4 md:mb-0">
-              <h4 className="text-gray-900 font-bold text-lg mb-2">Subscribe to Our Newsletter</h4>
-              <p className="text-gray-700">Get the latest updates and insights delivered to your inbox.</p>
+              <h4 className="text-gray-900 font-bold text-lg mb-2">{footerSettings?.newsletterCta?.title || defaultFooterSettings.newsletterCta.title}</h4>
+              <p className="text-gray-700">{footerSettings?.newsletterCta?.subtitle || defaultFooterSettings.newsletterCta.subtitle}</p>
             </div>
             <ScrollLink
               to="newsletter"
@@ -144,7 +195,7 @@ export default function Footer() {
               duration={500}
               className="px-6 py-3 bg-yellow-400 text-black rounded-full font-bold hover:bg-yellow-500 hover:shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer"
             >
-              Subscribe Now
+              {footerSettings?.newsletterCta?.buttonText || defaultFooterSettings.newsletterCta.buttonText}
             </ScrollLink>
           </div>
         </div>
@@ -160,7 +211,7 @@ export default function Footer() {
             
             {/* Legal Links */}
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm mb-4 md:mb-0">
-              {footerLinks.legal.map((link) => (
+              {legalLinks.map((link: FooterLink) => (
                 <Link
                   key={link.name}
                   href={link.href}
@@ -173,14 +224,14 @@ export default function Footer() {
 
             {/* Technology Partner */}
             <div className="text-sm text-gray-700 flex items-center">
-              <span>Technology Partner: </span>
+              <span>{footerSettings?.technologyPartner?.label || defaultFooterSettings.technologyPartner.label} </span>
               <a 
-                href="https://techstudio.co.in" 
+                href={footerSettings?.technologyPartner?.url || defaultFooterSettings.technologyPartner.url} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="ml-1 font-semibold text-yellow-700 hover:text-yellow-800 underline"
               >
-                Tech Studio
+                {footerSettings?.technologyPartner?.name || defaultFooterSettings.technologyPartner.name}
               </a>
               <FaHeart className="ml-1 text-red-500 animate-pulse" />
             </div>
