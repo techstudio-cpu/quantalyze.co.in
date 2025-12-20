@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { verifyToken } from '@/lib/auth';
 
 // Create table if it doesn't exist (this will run on first API call)
 const ensureTableExists = async () => {
@@ -18,6 +19,14 @@ const ensureTableExists = async () => {
   } catch (error) {
     console.log('Analytics table may already exist:', error);
   }
+};
+
+const isAdminRequest = (request: NextRequest) => {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
+  const token = authHeader.substring(7);
+  const verification = verifyToken(token);
+  return verification.valid;
 };
 
 export async function POST(request: NextRequest) {
@@ -75,6 +84,10 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     await ensureTableExists();
+
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
     
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get('days') || '30');

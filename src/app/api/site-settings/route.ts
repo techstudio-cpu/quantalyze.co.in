@@ -105,6 +105,37 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const scope = searchParams.get('scope') || 'footer';
+    const action = searchParams.get('action');
+    const limitParam = searchParams.get('limit');
+    const parsedLimit = limitParam ? parseInt(limitParam, 10) : 20;
+    const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 200) : 20;
+
+    if (action === 'history') {
+      if (!isAdminRequest(request)) {
+        return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      }
+
+      const historyRows = await query(
+        `SELECT id, scope, action, snapshot, created_at
+         FROM site_settings_history
+         WHERE scope = ?
+         ORDER BY created_at DESC
+         LIMIT ${limit}`,
+        [scope]
+      ) as any[];
+
+      const history = Array.isArray(historyRows)
+        ? historyRows.map((r) => ({
+            id: r.id,
+            scope: r.scope,
+            action: r.action,
+            snapshot: typeof r.snapshot === 'string' ? JSON.parse(r.snapshot) : r.snapshot,
+            created_at: r.created_at,
+          }))
+        : [];
+
+      return NextResponse.json({ success: true, scope, history });
+    }
 
     const rows = await query('SELECT settings FROM site_settings WHERE scope = ? LIMIT 1', [scope]) as any[];
     const settingsRaw = Array.isArray(rows) && rows[0]?.settings !== undefined ? rows[0].settings : null;

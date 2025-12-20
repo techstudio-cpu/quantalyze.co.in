@@ -21,9 +21,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
            document.cookie.split('; ').find(row => row.startsWith('adminToken='))?.split('=')[1])
         : null;
       
-      if (!token && !pathname.startsWith('/admin/login')) {
-        router.push('/admin/login');
-      } else if (token && pathname === '/admin/login') {
+      const isLoginPage = pathname === '/admin';
+
+      if (!token && !isLoginPage) {
+        router.push('/admin');
+      } else if (token && isLoginPage) {
+        // If authenticated and on login page, keep user in admin area.
+        // Avoid redirecting away from actual admin sub-pages.
         router.push('/admin');
       }
       setIsLoading(false);

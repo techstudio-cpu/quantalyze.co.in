@@ -38,14 +38,23 @@ export default function AdminPage() {
   const fetchDashboardData = async () => {
     try {
       setDataLoading(true);
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
       
       // Fetch contact submissions
-      const contactResponse = await fetch('/api/contact?limit=1000');
+      const contactResponse = await fetch('/api/contact?limit=1000', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const contactData = await contactResponse.json();
       const contactCount = contactData.success ? contactData.submissions.length : 0;
 
       // Fetch newsletter stats
-      const newsletterResponse = await fetch('/api/newsletter');
+      const newsletterResponse = await fetch('/api/newsletter', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const newsletterData = await newsletterResponse.json();
       const newsletterCount = newsletterData.success ? newsletterData.stats.active : 0;
 

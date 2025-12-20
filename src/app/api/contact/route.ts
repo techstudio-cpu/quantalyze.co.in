@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { sendEmail } from '@/lib/email-service';
 import { getInquiryDraftTemplate } from '@/emails/templates';
+import { verifyToken } from '@/lib/auth';
 
 // Create table if it doesn't exist (this will run on first API call)
 const ensureTableExists = async () => {
@@ -23,6 +24,14 @@ const ensureTableExists = async () => {
   } catch (error) {
     console.log('Contact table may already exist:', error);
   }
+};
+
+const isAdminRequest = (request: NextRequest) => {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
+  const token = authHeader.substring(7);
+  const verification = verifyToken(token);
+  return verification.valid;
 };
 
 export async function POST(request: NextRequest) {
@@ -105,6 +114,10 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     await ensureTableExists();
+
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
     
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -153,6 +166,10 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { id, status } = body;
 

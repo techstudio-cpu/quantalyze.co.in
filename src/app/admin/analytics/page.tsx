@@ -32,7 +32,12 @@ export default function AnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/analytics?days=${dateRange}`);
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
+      const response = await fetch(`/api/analytics?days=${dateRange}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
       
       if (data.success) {

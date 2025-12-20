@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function UnsubscribedPage() {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
@@ -27,12 +29,12 @@ export default function UnsubscribedPage() {
           We're sorry to see you go. You can resubscribe anytime.
         </p>
         <div className="mt-6">
-          <a
+          <Link
             href="/"
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
           >
             Return to Home
-          </a>
+          </Link>
         </div>
       </div>
     </div>

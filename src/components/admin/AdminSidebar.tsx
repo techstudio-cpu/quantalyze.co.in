@@ -15,11 +15,10 @@ const sidebarItems: SidebarItem[] = [
   { title: 'Dashboard', href: '/admin', icon: '🏠', exact: true },
   { title: 'Content', href: '/admin/content', icon: '📝' },
   { title: 'Services', href: '/admin/services', icon: '🛠️' },
+  { title: 'Courses', href: '/admin/courses', icon: '🎓' },
   { title: 'Analytics', href: '/admin/analytics', icon: '📊' },
   { title: 'Newsletter', href: '/admin/newsletter', icon: '📧' },
-  { title: 'Inquiries', href: '/admin/inquiries', icon: '💬' },
-  { title: 'Team', href: '/admin/team', icon: '👥' },
-  { title: 'Updates', href: '/admin/updates', icon: '🔄' },
+  { title: 'Inquiries', href: '/admin/contact-submissions', icon: '💬' },
   { title: 'Settings', href: '/admin/settings', icon: '⚙️' },
 ];
 
@@ -43,7 +42,7 @@ export default function AdminSidebar() {
     }
     
     // Redirect to login
-    router.push('/admin/login');
+    router.push('/admin');
   };
 
   return (

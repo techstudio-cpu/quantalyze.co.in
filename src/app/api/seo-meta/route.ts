@@ -59,6 +59,37 @@ export async function GET(request: NextRequest) {
     await ensureTables();
     const { searchParams } = new URL(request.url);
     const route = searchParams.get('route') || '/';
+    const action = searchParams.get('action');
+    const limitParam = searchParams.get('limit');
+    const parsedLimit = limitParam ? parseInt(limitParam, 10) : 20;
+    const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 200) : 20;
+
+    if (action === 'history') {
+      if (!isAdminRequest(request)) {
+        return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      }
+
+      const historyRows = await query(
+        `SELECT id, route, action, snapshot, created_at
+         FROM seo_meta_history
+         WHERE route = ?
+         ORDER BY created_at DESC
+         LIMIT ${limit}`,
+        [route]
+      ) as any[];
+
+      const history = Array.isArray(historyRows)
+        ? historyRows.map((r) => ({
+            id: r.id,
+            route: r.route,
+            action: r.action,
+            snapshot: typeof r.snapshot === 'string' ? JSON.parse(r.snapshot) : r.snapshot,
+            created_at: r.created_at,
+          }))
+        : [];
+
+      return NextResponse.json({ success: true, route, history });
+    }
 
     const rows = await query(
       'SELECT route, title, description, keywords, og_title, og_description FROM seo_meta WHERE route = ? LIMIT 1',

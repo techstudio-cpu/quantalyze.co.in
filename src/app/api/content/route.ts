@@ -277,6 +277,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Managed content saved', section });
     }
 
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
     if (!title || !type || !slug) {
       return NextResponse.json(
         { success: false, message: 'Title, type, and slug are required' },
@@ -362,6 +366,10 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Managed content restored' });
     }
 
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
     if (!id) {
       return NextResponse.json(
         { success: false, message: 'Content ID is required' },
@@ -440,6 +448,10 @@ export async function DELETE(request: NextRequest) {
   try {
     await ensureTableExists();
     await ensureColumnsExist();
+
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
     
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

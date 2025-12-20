@@ -205,6 +205,10 @@ export async function POST(request: NextRequest) {
     await ensureTableExists();
     await ensureColumnsExist();
     await ensureHistoryTableExists();
+
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
     
     const body = await request.json();
     const { title, description, icon, category, price, show_price, featured, points, sub_services } = body;
@@ -261,6 +265,10 @@ export async function PUT(request: NextRequest) {
     await ensureTableExists();
     await ensureColumnsExist();
     await ensureHistoryTableExists();
+
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
     
     const body = await request.json();
     const { id, featured, status, title, description, icon, category, price, show_price, points, sub_services, restore } = body;
@@ -372,6 +380,10 @@ export async function DELETE(request: NextRequest) {
     await ensureTableExists();
     await ensureColumnsExist();
     await ensureHistoryTableExists();
+
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
     
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

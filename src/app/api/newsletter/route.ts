@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { sendEmail } from '@/lib/email-service';
 import { getThankYouTemplate } from '@/emails/templates';
+import { verifyToken } from '@/lib/auth';
 
 // Create table if it doesn't exist (this will run on first API call)
 const ensureTableExists = async () => {
@@ -21,6 +22,14 @@ const ensureTableExists = async () => {
   } catch (error) {
     console.log('Newsletter table may already exist:', error);
   }
+};
+
+const isAdminRequest = (request: NextRequest) => {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
+  const token = authHeader.substring(7);
+  const verification = verifyToken(token);
+  return verification.valid;
 };
 
 // Check if columns exist and add them if needed
@@ -206,6 +215,11 @@ export async function GET(request: NextRequest) {
       // Redirect to a thank you page
       const redirectUrl = new URL('/unsubscribed', request.url);
       return NextResponse.redirect(redirectUrl);
+    }
+
+    // All other newsletter reads are admin-only
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
     const statsQuery = `

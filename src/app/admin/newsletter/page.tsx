@@ -39,13 +39,22 @@ export default function NewsletterPage() {
   const fetchNewsletterData = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/newsletter');
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
+      const response = await fetch('/api/newsletter', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
       
       if (data.success) {
         setStats(data.stats);
         // Fetch subscribers list
-        const subsResponse = await fetch('/api/newsletter?action=list');
+        const subsResponse = await fetch('/api/newsletter?action=list', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
         const subsData = await subsResponse.json();
         if (subsData.success) {
           setSubscribers(subsData.subscribers || []);

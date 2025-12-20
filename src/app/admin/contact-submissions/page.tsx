@@ -35,8 +35,13 @@ export default function ContactSubmissionsPage() {
   const fetchSubmissions = async () => {
     try {
       setLoading(true);
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
       const url = filter === 'all' ? '/api/contact?limit=100' : `/api/contact?status=${filter}&limit=100`;
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -53,9 +58,11 @@ export default function ContactSubmissionsPage() {
 
   const updateStatus = async (id: number, newStatus: string) => {
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem('adminToken') : null;
       const response = await fetch('/api/contact', {
         method: 'PATCH',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ id, status: newStatus }),
